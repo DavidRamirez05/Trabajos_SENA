@@ -77,11 +77,13 @@ const syncDatabase = async (force = false, alter = false) => {
         // Sincronizar todos los modelos con la base de datos
         await sequelize.sync({force,alter});
 
-        if(force){
-            console.log('Base de datos sincronizada(Tablas alteradas para coincidir con los modelos)');
-        }else{
-            console.log('Base de datos sincronizada correctamente.');
-        }
+        if (force) {
+            console.log("Base de datos sincronizada: todas las tablas recreadas");
+        } else if (alter) {
+        console.log("Base de datos sincronizada (tablas alteradas segun los modelos)");
+        } else {
+        console.log("Base de datos sincronizada correctamente");
+    }
 
         return true;
     } catch (error) {
