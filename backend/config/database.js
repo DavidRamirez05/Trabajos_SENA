@@ -2,6 +2,7 @@
 
 //Importar sequelize
 const { Sequelize } = require('sequelize');
+const { combineTableNames } = require('sequelize/lib/utils');
 
 //Importar dotenv para variables de entorno
 require('dotenv').config();
@@ -63,3 +64,34 @@ const testConnection = async () => {
     return false;
     }
 }
+
+/*
+ * Funcion para sincronizar los modelos con la base de datos
+ * Esta funcion crearan las tablas automaticamente basandose en los modelos 
+ * @param {bolean} force - si es true, elemina y recrea todas las combineTableName
+ * @param {bolean} alter - si es true, modifica las tablas existentes para que coincidan con los modelos
+*/
+
+const syncDatabase = async (force = false, alter = false) => {
+    try{
+        // Sincronizar todos los modelos con la base de datos
+        await sequelize.sync({force,alter});
+
+        if(force){
+            console.log('Base de datos sincronizada(Tablas alteradas para coincidir con los modelos)');
+        }else{
+            console.log('Base de datos sincronizada correctamente.');
+        }
+
+        return true;
+    } catch (error) {
+        console.error('X Error al sincronizar la base de datos:', error.message);
+        return false;
+    }
+};
+// Exportar la instancia de sequelize y las funciones
+module.exports = {
+    sequelize,
+    testConnection,
+    syncDatabase
+};
