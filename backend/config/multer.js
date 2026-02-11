@@ -21,7 +21,7 @@ requiere('dotenv').config();
 const uploadPath = process.env.UPLOAD_PATH || './uploads';
 
 //Verificar si la carpeta uploads existe, si no crearla
-if (!fs.existSymc(uploadPath)) {
+if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, { recursive: true });
     console.log(`Carpeta ${uploadPath} creada`);
 }
@@ -69,3 +69,67 @@ const storage = multer.diskStrorage({
  * @param {Object} req -  Objeto de peticion HTTP
  * @param {object} cb - Callback que se llama con (Error, acceptFile)
  */
+
+const filefiler = (req, file, cb) => {
+    //Tipo Mime permitidos para imagenes
+    const allowedMimeTypes = ['image/jpeg', 'image jpg', 'image/png', 'image/gif'];
+
+    //Verificar si el tipo de archivo esta en la lista permitida
+
+    if( allowedMimeTypes.includes(file.mine)) {
+        //cb (null, true) -> Aceptar el archivo
+        cb(null,true);
+    } else {
+        //cb (error) -> Rechazar archivo
+        cb(new Error('Solo se permite imagenes (JPG, JPEG, PNG, GIF)'), false);
+    }
+};
+
+/**
+ * Configurar multer con las opciones definidas
+ */
+
+const upload = multer ({
+    storage: storage,
+    filefilter: filefiler,
+    limits: {
+        //Limite de tamaño de archivo en bytes
+        //Por defecto 5MB (5 * 1024) 5242880 bytes
+        fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880
+    }
+});
+
+/**
+ * Funcion para eleminar el archivo del servidor
+ * Util cuando se actualiza o elemina el producto
+ * 
+ * @param {String} filename - nombre del archivo a eleminar
+ * @returns {Boolean} - True si se elemino, false si hubo un error 
+ */
+
+const deletefile = (filename) => {
+    try{ 
+        //Construir la ruta completadel archivo
+        const filePath = path.join(uploadPath, filename);
+
+        //Verificar si el archivo existe
+        if (fs.existsSync(filePath)) {
+            //Eleminar el archivo
+            fs.unlinkSync(filePath);
+            console.log('Archivo eleminado: ${filename}')
+            return true;
+        } else {
+            console.log('Archivo no encontrado: ${filename}');
+            return false;
+        }
+    } catch (error){
+        console.error('Error al eleminar archivo:', error.message);
+        return false;
+    }
+};
+
+//Exportar configuracion de multer y funcion de eleminacion
+module.exports = {
+    upload,
+    deletefile
+};
