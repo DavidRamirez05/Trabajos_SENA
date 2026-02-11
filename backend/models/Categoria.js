@@ -40,4 +40,76 @@
             }
         }
     },
+
+    /**
+     * Descripcion de la categoria
+     */
+    descripcion: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+
+    /**
+     * Activo estado de la categoria
+     * si es false la categoria y todas sus subcategorias y productos se ocultan
+     */
+    activo: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+    }
+ }, {
+    //Opciones del modelo 
+
+    tableName: 'categorias',
+    timestamps: true, // agrega campos de createdAt y updateAt
+
+    /**
+     * Hooks acciones automaticas
+     */
+
+    hooks: {
+        /**
+         * afterUpdate: se ejecuta despues de actualizar una categoria
+         * si se desactiva una categoria se desactivan todas sus subcategorias y productos
+         */
+        afterUpdate: async (categoria, options) => {
+            //Verificar si el campo activo cambio
+            if (categoria.changed('activo') && !categoria.activo) {
+                console.log(`Desactivando categoria: ${categoria.nombre}`);
+
+                //Importar modelos (Aqui para evotar dependencias circulares)
+                const subcategoria = require('./Subcategoria');
+                const Producto = require('./Producto');
+
+                try{ 
+                    //Paso 1 desactivar las subcategorias de esta categoria
+                    const subcategorias = await subcategorias.findAll({ 
+                        where: { categoriaId: categoria.id}
+                    });
+
+                    for (const subcategoria of subcategorias) {
+                        await subcategoria.update({ activo:false }, { transaction:options.transaction });
+                        console.log(`Subcategoria desactivada: ${subcategoria.nombre}`);
+                    }
+
+                    //Paso 2 desactivar los productos de estacategoria
+                    const productos = await Producto.findAll({ 
+                        where: { categoriaId: categoria.id}
+                    });
+
+                    for (const producto of productos) {
+                        await producto.update({ activo:false }, { transaction:options.transaction });
+                        console.log(`Producto desactivada: ${producto.nombre}`);
+                    }
+
+                    console.log(`Categorias y elementos reacionados desactivados correctamente`);
+                } catch (error) {
+                    console.error('Error al desactivar elementos relacionados:', error.message);
+                    throw error;
+                }
+            }
+            
+        }
+    }
  })
