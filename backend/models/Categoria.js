@@ -109,7 +109,30 @@
                     throw error;
                 }
             }
-            
+            //Si se activa una categoria no se activan automaticamente las subcategorias y productos
         }
     }
- })
+ });
+
+ //METODOS DE INSTANCIA
+ /**
+  * Metodo para contar subcategorias de esta categoria
+  * 
+  * @returns {Promise<number} - Numero de sbcategorias
+  */
+ Categoria.protoype.contarSubcategorias = async function(){
+    const Subcategoria = requiere('./Subcategoria');
+    return await Subcategoria.count({ where: {categoriaId: this.id}});
+};
+
+/** 
+ * Metodo para contar productos de esta categoria
+ *  
+ *  @returns {Promise<number} - Numero de sbcategorias
+ */
+ Categoria.protoype.contarProductos = async function(){
+    const Producto = requiere('./Producto');
+    return await Producto.count({ where: {categoriaId: this.id}});
+};
+
+ 
