@@ -1,7 +1,7 @@
 /**
  * MODELO CATEGORIA
  * 
- *Define ña tabla Categoria en la base de datos 
+ *Define la tabla Categoria en la base de datos 
  Almacena las cetogorias principales de los productos
  */
 
