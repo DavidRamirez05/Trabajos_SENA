@@ -180,5 +180,3 @@
     const Producto = requiere('./Producto');
     return await Producto.count({ where: {subcategoriaId: this.id}});
 };
-
-});
