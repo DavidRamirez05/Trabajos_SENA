@@ -90,7 +90,7 @@
             msg: 'El precio no puede ser negativo'
         }
     }
-}, {
+},  {
     //Opciones del modelo
     tableName: 'carritos',
     timestamps: true, //Indices para mejorar las busquedas
@@ -100,10 +100,11 @@
             //Indice para buscar carrito por usuario
             fields: ['usuarioId']
         },
+
         {
             //Indice para buscar carrito por producto
             fields: ['productoId']
-        }
+        },
         
         //Indice compuesto: Un usuario no puede tener el mismo producto mas de una vez en el carrito
         {
@@ -111,7 +112,7 @@
             fields: ['usuarioId', 'productoId'],
             name: 'usuario_producto_unique'
         }
-    ],
+],
 
     
     /**
@@ -119,64 +120,128 @@
      */
     hooks: {
         /**
-         * beforeCreate - sejecuta antes de crear una subcategoria
-         * Verifica que la categoria padre esta activa
+         * beforeCreate - Se ejecuta antes de crear un nuevo carrito
+         * Verifica que esta activo y tenga stock suficiente
          */
-        beforeCreate: async (subcategoria) => {
-            const Categoria = requiere('./Categoria');
+        beforeCreate: async (itemCarrito) => {
+            const Producto = requiere('./Producto');
 
-            //Buscar categoria padre
-            const categoria = await Categoria.findByPk(subcategoria.categoriaId);
+            //Buscar producto
+            const producto = await Producto.findByPk(itemCarrito.productoId);
 
-            if (!categoria){
-                throw new Error ('La categoria seleccionada no existe');
+            if (!producto){
+                throw new Error ('El producto no existe');
             }
 
-            if (!categoria.activo) {
-                throw new Error ('No se puede crear una subcategoria en una categoria inactiva');
+            if (!producto.activo) {
+                throw new Error ('No se puede agregar al carrito un producto inactivo');
             }
+
+            if (!producto.hayStock(itemCarrito.cantidad)) {
+                throw new Error (`Stock insuficiente. Solo quedan ${producto.stock} unidades disponibles`);
+            }
+
+            //Guardar el precio actual del producto en el carrito
+            itemCarrito.precioUnitario = producto.precio;
         },
 
         /**
-         * afterUpdate: Se ejecuta despues de actualizar una subcategoria
-         * Si se desactiva una subcategoria se desactivan todos sus productos
+         * BeforeUpdate: Se ejecuta antes de actualizar un carrito
+         * Valida que haya stock suficiente si se aumenta la cantidad
          */
-        afterUpdate: async (subcategoria, options) => {
-            //Verificar si el campo activo cambio
-            if (subcategoria.changed('activo') && !subcategoria.activo) {
-                console.log(`Desactivando subcategoria: ${subcategoria.nombre}`);
+        BeforeUpdate: async (itemCarrito) => {
 
-                //Importar modelos (Aqui para evotar dependencias circulares)
-                const Producto = require('./Producto');
+            if (itemCarrito.changed('cantidad')) {
+                const Produco = requiere('./Producto');
+                const producto = await Producto.findByPk(itemCarrito.productoId);
 
-                try{ 
-                    //Paso 1 desactivar los productos de esta subcategoria
-                    const productos = await Producto.findAll({ 
-                        where: { subcategoriaId: subcategoria.id}
-                    });
+                if (!producto) {
+                    throw new Error ('El producto no existe');
+                }
 
-                    for (const producto of productos) {
-                        await producto.update({ activo:false }, { transaction:options.transaction });
-                        console.log(`Producto desactivado: ${producto.nombre}`);
-                    }
-                    console.log(`Subcategoria y productos relacionados desactivados correctamente`);
-                    } catch (error) {
-                        console.error('Error al desactivar productos relacionados', error.message);
-                        throw error;
-                    }
+                if (!producto.hayStock(itemCarrito.cantidad)) {
+                    throw new Error (`Stock insuficiente. Solo quedan ${producto.stock} unidades disponibles`);
+                }
             }
-            //Si se activa una categoria no se activan automaticamente las subcategorias y productos
         }
     }
  });
 
  //METODOS DE INSTANCIA
  /**
-  * Metodo para contar productos de esta categoria
-  * 
-  * @returns {Promise<number} - Numero de productos
+  * Metodo para calcular el subtotal de un item del carrito  
+  * @returns {number} - (precio unitario * cantidad)
   */
- Subcategoria.protoype.contarproductos = async function(){
+ Carrito.prototype.calcularSubtotal = function(){
+    return parseFloat(this.precioUnitario) * this.cantidad;
+ };
+
+ /**
+  * Metodo para actualizar la cantidad de un item del carrito
+  * @param {number} nuevaCantidad - Mueva cantidad
+  * @returns {Promise} - Item actualizado
+  */
+    Carrito.prototype.actualizarCantidad = async function(nuevaCantidad) {
+        const Producto = requiere('./Producto');
+
+        const producto = await Producto.findByPk(this.productoId);
+        
+        if (!producto.hayStock(nuevaCantidad)) {
+            throw new Error(`Stock insuficiente. Solo quedan ${producto.stock} unidades disponibles`);
+        }
+        this.cantidad = nuevaCantidad;
+        return await this.save();
+    };
+
+ /**
+  * Metodo para obtener el carrito completo de un usuario
+  * Incluye unformacion de los productos
+  * @param {number} usuarioId - ID del usuario
+  * @returns {Promise<Array>} - Items del carrito con informacion del producto
+  */
+ Carrito.obtenerCarritoCompleto = async function(usuarioId) {
     const Producto = requiere('./Producto');
-    return await Producto.count({ where: {subcategoriaId: this.id}});
+
+    const itemsCarrito = await Carrito.findAll({
+        where: { usuarioId },
+        include: [
+            {
+                model: Producto,
+                as: ['producto']
+            }
+        ],
+        order: [['createdAt', 'DESC']]
+    });
 };
+
+/**
+ * Metodo para calcular el total del carrito de un usuario
+ * @param {number} usuarioId - ID del usuario
+ * @returns {Promise<number>} - Total del carrito
+ */
+Carrito.calcularTotalCarrito = async function(usuarioId) {
+    const itemsCarrito = await Carrito.findAll({
+        where: { usuarioId }
+    });
+
+    let total = 0;
+    for (const item of itemsCarrito) {
+        total += item.calcularSubtotal();
+    }
+    return total;
+};
+
+/**
+ * Metodo para vaciar el carrito de un usuario
+ * Util despues de realizar un pedido
+ * @param {number} usuarioId - ID del usuario
+ * @returns {Promise<number>} - Numero de items eleminados
+ */
+Carrito.vaciarCarrito = async function(usuarioId) {
+    return await Carrito.destroy({
+        where: { usuarioId }
+    });
+};
+
+//Exportar modelo
+module.exports = Carrito;
