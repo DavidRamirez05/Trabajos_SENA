@@ -1,20 +1,23 @@
 /**
- * MODELO CATEGORIA
+ * MODELO USUARIO
  * 
- *Define la tabla Categoria en la base de datos 
- Almacena las cetogorias principales de los productos
+ *Define la tabla Usuario en la base de datos 
+ Almacena la informacion de los usuarios del sistema
  */
 
  //Importar DataTypes de sequelize
  const { DataTypes} = require('sequelize');
 
+//Importar DataTypes de sequelize
+const { DataTypes} = require('bcrypt');
+
  //Importar instancia de sequelize
  const { sequelize } = require('../config/database');
 
  /**
-  * Definir el modelo de Categoria
+  * Definir el modelo de Usuario
   */
- const Categoria = sequelize.define('Categoria', {
+ const Usuario = sequelize.define('Usuario', {
     //Campos de la tabla
     //Id Identificador unico (PRIMARY KEY)
     id: {
@@ -27,12 +30,9 @@
     nombre: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        unique: {
-            msg: 'Ya existe una categoria con ese nombre'
-        },
         validate: {
             notEmpty: {
-                msg: 'El nombre de la categoria no puede estar vacio'
+                msg: 'El nombre del usuario no puede estar vacio'
             },
             len: {
                 args: [2, 100],
@@ -40,6 +40,66 @@
             }
         }
     },
+
+    email: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique: {
+            msg: 'Este email ya esta registrado'
+        },
+        validate: {
+            isEmail: {
+                msg: 'El email debe tener un formato valido'
+            },
+            notEmpty: {
+                msg: 'El email debe tener entre 2 y 100 caracteres'
+            }
+        }
+    },
+
+    password: {
+        type: DataTypes.STRING(255), //Cadena larga para el hash
+        allowNull: false,
+        validate: {
+            notEmpty: {
+                msg: 'La contraseña no puede estar vacia'
+            },
+            len: {
+                args: [6, 255],
+                msg: 'La contraseña debe tener entre 6 y 255 caracteres'
+            }
+        }
+    },
+
+    //Rol del usuario (cliente, auxiliar o administrador)
+    rol: {
+        type: DataTypes.ENUM('cliente', 'auxiliar', 'administrador'),
+        allowNull: false,
+        defaultValue: 'cliente', //Por defecto es cliente
+        validate: {
+            isIn: {
+                args: [['cliente', 'auxiliar', 'administrador']],
+                msg: 'El rol del usuario debe ser cliente, auxiliar o administrador'
+            },
+            len: {
+                args: [2, 100],
+                msg: 'El nombre debe tener entre 2 y 100 caracteres'
+            }
+        }
+    },
+
+    //Telefono del usuario 
+    telefono: {
+        type: DataTypes.STRING(20),
+        allowNull: true, //Es opcional
+        is: {
+            args: {
+                args: /^\+?[0-9\s\-()]+$/, //Solo numeros, espacios, guiones y parentesis 
+                msg: 'El telefono solo puede contener numeros, espacios, guiones y parentesis'
+            }
+        }
+    },
+    
 
     /**
      * Descripcion de la categoria
