@@ -95,105 +95,98 @@ const { DataTypes} = require('bcrypt');
         is: {
             args: {
                 args: /^\+?[0-9\s\-()]+$/, //Solo numeros, espacios, guiones y parentesis 
-                msg: 'El telefono solo puede contener numeros, espacios, guiones y parentesis'
+                msg: 'El telefono solo puede contener numeros y caracteres de formato valido'
             }
         }
     },
     
-
-    /**
-     * Descripcion de la categoria
-     */
-    descripcion: {
+    //Direccion del usuario
+    direccion: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
 
     /**
-     * Activo estado de la categoria
-     * si es false la categoria y todas sus subcategorias y productos se ocultan
+     * Activo estado del usuario
      */
     activo: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: true
+        defaultValue: true //Por defecto el usuario esta activo
     }
  }, {
-    //Opciones del modelo 
 
-    tableName: 'categorias',
+    //Opciones del modelo
+    tableName: 'usuarios',
     timestamps: true, // agrega campos de createdAt y updateAt
 
     /**
-     * Hooks acciones automaticas
+     * Scopes para consultas
      */
+    defaultScope: {
+        attributes: { exclude: ['password'] } 
+    },
+    scopes: {
+        //Scope para incluir el campo password en las consultas necesarias (por ejemplo para login)
+        withPassword: {
+            attributes: {} //Incluir todos los atributos
+        }
+    },
 
-    hooks: {
-        /**
-         * afterUpdate: se ejecuta despues de actualizar una categoria
-         * si se desactiva una categoria se desactivan todas sus subcategorias y productos
-         */
-        afterUpdate: async (categoria, options) => {
-            //Verificar si el campo activo cambio
-            if (categoria.changed('activo') && !categoria.activo) {
-                console.log(`Desactivando categoria: ${categoria.nombre}`);
-
-                //Importar modelos (Aqui para evotar dependencias circulares)
-                const subcategoria = require('./Subcategoria');
-                const Producto = require('./Producto');
-
-                try{ 
-                    //Paso 1 desactivar las subcategorias de esta categoria
-                    const subcategorias = await subcategorias.findAll({ 
-                        where: { categoriaId: categoria.id}
-                    });
-
-                    for (const subcategoria of subcategorias) {
-                        await subcategoria.update({ activo:false }, { transaction:options.transaction });
-                        console.log(`Subcategoria desactivada: ${subcategoria.nombre}`);
-                    }
-
-                    //Paso 2 desactivar los productos de estacategoria
-                    const productos = await Producto.findAll({ 
-                        where: { categoriaId: categoria.id}
-                    });
-
-                    for (const producto of productos) {
-                        await producto.update({ activo:false }, { transaction:options.transaction });
-                        console.log(`Producto desactivada: ${producto.nombre}`);
-                    }
-
-                    console.log(`Categorias y elementos reacionados desactivados correctamente`);
-                } catch (error) {
-                    console.error('Error al desactivar elementos relacionados:', error.message);
-                    throw error;
-                }
+    /**
+     * Hooks funciones que se ejecutan automaticamente en ciertos eventos
+     */
+    hooks: { 
+        /**beforeCreate: se ejecuta antes de crear un nuevo usuario
+         * Encripta la contraseña antes de guardarla en la base de datos
+        */
+        beforeCreate: async (usuario) => {
+            if (usuario.password) {
+                //Generar un salt (Semilla aleatoria) con factor de costo 10
+                const salt = await bcrypt.genSalt(10);
+                //Encriptar la contraseña usando el salt generado
+                usuario.password = await bcrypt.hash(usuario.password, salt);
             }
-            //Si se activa una categoria no se activan automaticamente las subcategorias y productos
+        },
+
+    /**
+     * beforeUpdate: se ejecuta antes de actualizar un usuario
+     * Encripta la contraseña si fue modificada
+     */
+    beforeUpdate: async (usuario) => {
+        //Verificar si la contraseña fue modificada
+        if (categoria.changed('password')) {
+            const salt = await bcrypt.genSalt(10);
+            usuario.password = await bcrypt.hash(usuario.password, salt);
         }
     }
- });
+}
+});
 
  //METODOS DE INSTANCIA
+
  /**
-  * Metodo para contar subcategorias de esta categoria
-  * 
-  * @returns {Promise<number} - Numero de sbcategorias
+  * Metodo para comparar contraseñas
+  * Compara una contraseña en texto plano con el hash guardado
+  * @param {string} passwordIngresado - Contraseña en texto plano a comparar
+  * @returns {Promise<boolean>} - True si coinciden, false en caso contrario
   */
- Categoria.protoype.contarSubcategorias = async function(){
-    const Subcategoria = requiere('./Subcategoria');
-    return await Subcategoria.count({ where: {categoriaId: this.id}});
+
+ 
+ Usuario.prototype.compararPassword = async function(passwordIngresado) {
+    return await bcrypt.compare(passwordIngresado, this.password);
 };
 
 /** 
- * Metodo para contar productos de esta categoria
+ * Metodo para obtener datos publicos del usuario (Sin contraseña)
  *  
- *  @returns {Promise<number} - Numero de sbcategorias
+ *  @returns {Object} - Objeto con los datos publicos del usuario
  */
- Categoria.protoype.contarProductos = async function(){
-    const Producto = requiere('./Producto');
-    return await Producto.count({ where: {categoriaId: this.id}});
+ Usuario.prototype.toJSON = function() {
+    const valores = Object.assign({}, this.get()); // Eleminar contraseña del objeto 
+    delete valores.password; // Eliminar la contraseña del objeto devuelto
+    return valores;
 };
 
- //Exportar modelo Categoria
- module.exports = Categoria;
+ //Exportar modelo Usuario
+ module.exports = Usuario;
