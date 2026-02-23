@@ -459,8 +459,18 @@ const getEstadisticasCategoria = async (req, res) =>
         console.error('Error en getEstadisticasCategoria: ', error);
         res.status(500).json({
             success: false,
-            message: 'Error al obtener estadisticas de la categoria',
+            message: 'Error al obtener estadisticas',
             error: error.message
         });
     }
 }
+
+//Exportar todos los controladores
+module.exports = {
+    getCategorias,
+    getCategoriasById,
+    crearCategoria,
+    actualizarCategoria,
+    eliminarCategoria,
+    getEstadisticasCategoria
+};
