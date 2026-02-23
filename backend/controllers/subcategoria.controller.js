@@ -472,6 +472,5 @@ module.exports = {
     crearCategoria,
     actualizarCategoria,
     eliminarCategoria,
-    getEstadisticasCategoria
-    
+    getEstadisticasCategoria        
 }
