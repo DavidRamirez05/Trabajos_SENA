@@ -314,4 +314,49 @@ const toggleCategoria = async (req, res) => {
             error: error.message
         });
     }
-}
+};
+
+/**
+ * Eleminar categoria
+ * DELETE /api/admin/categorias/:id
+ * Solo se permite elemiar una categoria si no tiene subcategorias ni productos relacionados
+ * @param {Object} req request Express
+ * @param {Object} res response Express
+ */
+const eliminarCategoria = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        //Buscar categoria
+        const categoria = await Categoria.findByPk(id);
+
+        if (!categoria) {
+            return res.status(404).json({
+                success: false,
+                message: 'Categoria no encontrada'
+            });
+        }
+
+        //Validacion verificar que no tenga subcategorias relacionadas
+        const subcategorias = await Subcategoria.count({ where: { categoriaId:id}});
+
+
+        if (subcategorias > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `No se puede eliminar la categoria porque tiene ${subcategorias} subcategorias asociadas usa PATCH /api/admin/categorias/:id toggle para desactivarla en lugar de eleminarla`
+            });
+        }
+
+        //Validacion verificar que no tenga productos
+        const productos = await Producto.count({ where: { categoriaId:id}});
+
+        
+        if (subcategorias > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `No se puede eliminar la categoria porque tiene ${productos} productos asociados usa PATCH /api/admin/categorias/:id toggle para desactivarla en lugar de eleminarla`
+            });
+        };
+    }
+}:
