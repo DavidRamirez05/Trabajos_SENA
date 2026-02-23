@@ -171,6 +171,7 @@ const crearCategoria = async (res, res) => {
                     categoria: nuevaCategoria
                 }
             });
+
         } catch (error) {
             if (error.name === 'SequelizeValidationError') {
             return res.status(400).json({
@@ -238,6 +239,7 @@ const actualizarCategoria = async (req, res) => {
                 categoria
             }
         });
+
     } catch (error) {
         console.error('Error en actualizarCategoria: ', error);
 
@@ -266,6 +268,7 @@ const actualizarCategoria = async (req, res) => {
  * @param {Object} req request Express
  * @param {Object} res response Express
  */
+
 const toggleCategoria = async (req, res) => {
     try {
         const {id} = req.params;
@@ -306,6 +309,7 @@ const toggleCategoria = async (req, res) => {
                 }
             }
         });
+
     } catch (error) {
         console.error('Error en toggleCategoria: ', error);
         res.status(500).json({
@@ -323,6 +327,7 @@ const toggleCategoria = async (req, res) => {
  * @param {Object} req request Express
  * @param {Object} res response Express
  */
+
 const eliminarCategoria = async (req, res) => {
     try {
         const {id} = req.params;
@@ -340,7 +345,6 @@ const eliminarCategoria = async (req, res) => {
         //Validacion verificar que no tenga subcategorias relacionadas
         const subcategorias = await Subcategoria.count({ where: { categoriaId:id}});
 
-
         if (subcategorias > 0) {
             return res.status(400).json({
                 success: false,
@@ -350,7 +354,6 @@ const eliminarCategoria = async (req, res) => {
 
         //Validacion verificar que no tenga productos
         const productos = await Producto.count({ where: { categoriaId:id}});
-
         
         if (subcategorias > 0) {
             return res.status(400).json({
@@ -376,3 +379,88 @@ const eliminarCategoria = async (req, res) => {
         });
     }
 };
+
+/**
+ * Obtener estadisticas de una categoria
+ * GET /api/admin/categorias/:id/estadisticas
+ * retorna
+ * Total de subcategorias activas / inactivas
+ * Total de productos activos / inactivos
+ * Valor total de inventario
+ * stock total 
+ * @param {Object} req request Express
+ * @param {Object} res response Express
+ */
+
+const getEstadisticasCategoria = async (req, res) => 
+{
+    try {
+        const {id} = req.params;
+
+        //Verificar que la categoria exista
+        const categoria = await Categoria.findByPk(id);
+
+        if (!categoria) {
+            return res.status(404).json({
+                success: false,
+                message: 'Categoria no encontrada'
+            });
+        }
+
+        //Contar subcategorias activas e inactivas
+        const totalSubcategorias = await Subcategoria.count({ where: { categoriaId:id }});
+        const subcategoriasActivas = await Subcategoria.count({ where: { categoriaId:id, activo:true}});
+
+        //Contar prodcutos activos e inactivos
+        const totalProductos = await Producto.count({ where: { categoriaId:id }});
+        const productosActivos = await Producto.count({ where: { categoriaId:id, activo:true}});
+
+        // Obtener productos para calcular estadisticas 
+        const productos = await Producto.findAll({ 
+            where: { categoriaId:id }, 
+            attributes: ['precio', 'stock']
+        });
+
+        //Calcular estadisticas de inventario
+        let valorTotalInventario = 0;
+        let stockTotal = 0;
+
+        productos.forEach(producto => {
+            valorTotalInventario += parseFloat(producto.precio) * producto.stock;
+            stockTotal += producto.stock;
+        });
+    
+        //Resúesta exitosa
+        res.json({
+            success: true,
+            data: {
+                id: categoria.id,
+                nombre: categoria.nombre,
+                activo: categoria.activo,
+            },
+            estadisticas: {
+                subcategorias: {
+                    total: totalSubcategorias,
+                    activas: subcategoriasActivas,
+                    inactivas: totalSubcategorias - subcategoriasActivas
+                },
+                productos: {
+                    total: totalProductos,
+                    activos: productosActivos,
+                    inactivos: totalProductos - productosActivos
+                },
+                inventario: {
+                    valorTotal: valorTotalInventario,
+                    stockTotal: stockTotal
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error en getEstadisticasCategoria: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener estadisticas de la categoria',
+            error: error.message
+        });
+    }
+}
