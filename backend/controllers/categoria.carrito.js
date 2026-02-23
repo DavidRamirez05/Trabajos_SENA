@@ -357,6 +357,22 @@ const eliminarCategoria = async (req, res) => {
                 success: false,
                 message: `No se puede eliminar la categoria porque tiene ${productos} productos asociados usa PATCH /api/admin/categorias/:id toggle para desactivarla en lugar de eleminarla`
             });
-        };
+        }
+
+        //Eliminar categoria
+        await categoria.destroy();
+        
+        //Respuesta exitosa
+        res.json({
+            success: true,
+            message: 'Categoria eliminada exitosamente'
+        });
+    } catch (error) {
+        console.error('Error en eliminar categoria: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar categoria',
+            error: error.message
+        });
     }
-}:
+};
