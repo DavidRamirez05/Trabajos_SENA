@@ -305,6 +305,13 @@ const toggleCategoria = async (req, res) => {
                     productos: productosAfectados
                 }
             }
-        })
+        });
+    } catch (error) {
+        console.error('Error en toggleCategoria: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al cambiar el estado de la categoria',
+            error: error.message
+        });
     }
 }
