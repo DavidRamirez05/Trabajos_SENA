@@ -142,9 +142,7 @@ const crearSubcategoria = async (res, res) => {
     try {
         const {nombre, descripcion, categoriaId} = req.body;
 
-        //
-
-            //validacion 1- velificar campos requiridos
+            //validacion 1 - velificar campos requiridos
             if (!nombre || !categoriaId) {
                 return res.status(400).json({
                     success: false,
@@ -152,7 +150,7 @@ const crearSubcategoria = async (res, res) => {
                 });
             }
             
-            //validar si la categoria existe
+            //validar 2 - Si la categoria existe
             const categoria = await Categoria.findByPk(categoriaId)
             if (!categoria) {
                 return res.status(404).json({
@@ -161,6 +159,16 @@ const crearSubcategoria = async (res, res) => {
                 });
             }
            
+            // Validacion 3 - verifica si la categoria este activa
+            if (!categoria.activo) {
+                return res.status(400).json({
+                    success: false,
+                    message: `La categoria con id ${categoriaId}`
+                })
+            }
+
+            // Validacion 4 - Verificar que el nombre no existe una subcategoria
+            cons
 
             //Validacion 2 verificar que el nombre no exista
             const categoriaExistente = await Categoria.findOne({ where: {nombre}
