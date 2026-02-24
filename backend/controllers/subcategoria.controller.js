@@ -168,7 +168,13 @@ const crearSubcategoria = async (res, res) => {
             }
 
             // Validacion 4 - Verificar que el nombre no existe una subcategoria
-            cons
+            const subcategoriaExistente = await Subcategoria.findOne({ where: {nombre }});
+
+            if (subcategoriaExistente) {
+                return res.status(400).json({
+                    message: `Ya existe una subcategoria con el nombre ${nombre}`
+                })
+            }
 
             //Validacion 2 verificar que el nombre no exista
             const categoriaExistente = await Categoria.findOne({ where: {nombre}
