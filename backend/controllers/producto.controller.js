@@ -425,6 +425,7 @@ const actualizarProducto = async (req, res) => {
       } catch (err) {
         console.error('Error al eliminar imagen: ', err);
       } 
+    }
 
     if (error.name === "sequelizeValidationError") {
       return res.status(400).json({
@@ -435,16 +436,16 @@ const actualizarProducto = async (req, res) => {
     }
 
     res.status(500).json({
-      sucess: false,
-      message: "Error al actualizar categoria",
+      success: false,
+      message: "Error al actualizar producto",
       error: error.message,
     });
-  }
+
 };
 
 /**
- * Activa/Desactivar categoria
- * PATCH /api/admin/categorias/:id/estado
+ * Activa/Desactivar Producto
+ * PATCH /api/admin/productos/:id/estado
  *
  * Al desactivar una categoria se desactivan todas las subcategorias relacionadas
  * Al desactivar una subcategoria se desactivan todos los productos relacionados
@@ -452,26 +453,29 @@ const actualizarProducto = async (req, res) => {
  * @param {Object} res response express
  */
 
-const toggleCategoria = async (req, res) => {
+const toggleProducto = async (req, res) => {
   try {
     const { id } = req.params;
 
-    //buscar categoria
-    const categoria = await Categoria.findByPk(id);
+      // Buscar producto
+      const producto = await Producto.findByPk(id);
 
-    if (!categoria) {
-      return res.status(404).json({
-        success: false,
-        message: "Categoria no encontrada",
-      });
-    }
+      if (!producto) {
+        return res.status(404).json({
+          success: false,
+          message: "Producto no encontrado",
+        });
+      }
+
+      producto.activo = !producto.activo;
+      await producto.save();
 
     // Alternar estado activo
-    const nuevoEstado = !categoria.activo;
-    categoria.activo = nuevoEstado;
+    const nuevoEstado = !producto.activo;
+    producto.activo = nuevoEstado;
 
     //Guardar cambios
-    await categoria.save();
+    await producto.save();
 
     // Contar cuantos registros se afectaron
     const subcategoriasAfectadas = await Subcategoria.count({
