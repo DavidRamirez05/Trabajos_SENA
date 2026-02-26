@@ -469,63 +469,42 @@ const toggleProducto = async (req, res) => {
 
       producto.activo = !producto.activo;
       await producto.save();
-
-    // Alternar estado activo
-    const nuevoEstado = !producto.activo;
-    producto.activo = nuevoEstado;
-
-    //Guardar cambios
-    await producto.save();
-
-    // Contar cuantos registros se afectaron
-    const subcategoriasAfectadas = await Subcategoria.count({
-      where: { categoriaId: id },
-    });
-
-    const productosAfectados = await Producto.count({
-      where: { categoriaId: id },
-    });
-
+      
     //Respuesta exitosa
     res.json({
       success: true,
-      message: `Categoria ${nuevoEstado ? "activada" : "desactivada"} exitosamente`,
-      data: {
-        categoria,
-        afectados: {
-          subcategorias: subcategoriasAfectadas,
-          productos: productosAfectados,
-        },
-      },
+      message: `Producto ${producto.activo ? "activado" : "desactivado"} exitosamente`,
+      data: { producto },
     });
+
   } catch (error) {
-    console.error("Error en toggleCategoria: ", error);
+    console.error("Error en toggleProducto: ", error);
     res.status(500).json({
       success: false,
-      message: "Error al cambiar estado de categoria",
+      message: "Error al cambiar estado del producto",
       error: error.message,
     });
   }
 };
 
 /**
- * Eliminar categoria
- * DELETE /api/admin/categorias/:id
+ * Eliminar Producto
+ * DELETE /api/admin/productos/:id
  * Solo permite eliminar si no tiene subcategorias ni productos relacionados
  * @param {Object} req request express
  * @param {Object} res response express
  */
-const eliminarCategoria = async (req, res) => {
+const eliminarProducto = async (req, res) => {
   try {
     const { id } = req.params;
 
-    //Buscar categoria
-    const categoria = await Categoria.findByPk(id);
+    //Buscar producto
+    const producto = await Producto.findByPk(id);
 
-    if (!categoria) {
+    if (!producto) {
       return res.status(404).json({
         success: false,
-        message: "Categoria no encontrada",
+        message: "Producto no encontrado",
       });
     }
 
