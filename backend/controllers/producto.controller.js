@@ -408,18 +408,23 @@ const actualizarProducto = async (req, res) => {
     if (subcategoriaId !== undefined) producto.subcategoriaId = parseInt(subcategoriaId);
 
     //Guardar cambios
-    await categoria.save();
+    await producto.save();
 
     //Respuesta exitosa
     res.json({
       success: true,
-      message: "Categoria actualizada exitosamente",
-      data: {
-        categoria,
-      },
+      message: "Producto actualizado exitosamente",
+      data: { producto }
     });
   } catch (error) {
-    console.error("Error en actualizarCategoria: ", error);
+    console.error("Error en actualizarProducto: ", error);
+    if (req.file) {
+      const rutaImagen = path.join(__dirname, '../uploads', req.file.filename);
+      try {
+        await fs.unlink(rutaImagen);
+      } catch (err) {
+        console.error('Error al eliminar imagen: ', err);
+      } 
 
     if (error.name === "sequelizeValidationError") {
       return res.status(400).json({
@@ -663,4 +668,5 @@ const getEstadisticasCategoria = async (req, res) => {
     toggleCategoria,
     eliminarCategoria,
     getEstadisticasCategoria
-  }
+  };
+}
