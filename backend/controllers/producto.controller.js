@@ -312,7 +312,7 @@ const crearProducto = async (req, res) => {
 /**
  * Actualizar producto
  * PUT /api/admin/productos/:id
- * Body: { nombre, descripcion}
+ * Body: { nombre, descripcion, precio, stock, categoriaId, subcategoriaId}
  * @param {Object} req request express
  * @param {Object} res response express
  */
@@ -320,9 +320,9 @@ const crearProducto = async (req, res) => {
 const actualizarProducto = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion } = req.body;
+    const { nombre, descripcion, precio, stock, categoriaId, subcategoriaId } = req.body;
 
-    //Buscar producto
+    //Buscar Producto
     const producto = await Producto.findByPk(id);
 
     if (!producto) {
@@ -332,23 +332,80 @@ const actualizarProducto = async (req, res) => {
       });
     }
 
-    //validacion 1 si se cambia el nombre verificar que no exista
-    if (nombre && nombre !== categoria.nombre) {
-      const categoriaConMismoNombre = await Categoria.findOne({
-        where: { nombre },
-      });
 
-      if (categoriaConMismoNombre) {
+    // Validacion si se cambia la categoria y subcategoria 
+    if (categoriaId && categoriaId !== producto.categoriaId) {
+      const categoria = await Categoria.findByPk(categoriaId);
+
+      if (!categoria) {
         return res.status(400).json({
           success: false,
-          message: `Ya existe una categoria con el nombre "${nombre}"`,
+          message: `Categoria invalida o inactiva`,
         });
-      }
+      };
     }
-    //Aactualizar campos
-    if (nombre !== undefined) categoria.nombre = nombre;
-    if (descripcion !== undefined) categoria.descripcion = descripcion;
-    if (activo !== undefined) categoria.activo = activo;
+    
+    // Validacion si se cambia la subcategoria
+    if (subcategoriaId && subcategoriaId !== producto.subcategoriaId) {
+      const subcategoria = await Subcategoria.findByPk(subcategoriaId);
+
+      if (!subcategoria || !subcategoria.activo) {
+        return res.status(400).json({
+          success: false,
+          message: `Subcategoria invalida o inactiva`,
+        });
+      };
+    }
+
+      const catId = categoriaId || producto.categoriaId;
+      if (subcategoriaId.categoriaId !== parseInt(catId)) {
+          return res.status(400).json({
+            success: false,
+            message: 'La subcategoria no pertenece a la categoria seleccionada',
+        });
+      };
+  
+      // Validar el precio y Stock
+      if (precio !== undefined && parseFloat(precio) < 0){ 
+        if (isNaN(precio) || parseFloat(precio) < 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'El precio debe ser mayor a 0'
+          });
+        }
+      }
+
+      if (stock !== undefined && parseInt(stock) < 0) {
+        if (isNaN(stock) || parseInt(stock) < 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'El stock debe ser mayor o igual a 0'
+          });
+        }
+      }
+
+    //Manejo de imagen
+    if (req.file) {
+      //Eliminar imagen anterior si existe
+      if (producto.imagen) {
+        const rutaImagenAnterior = path.join(__dirname, '../uploads', producto.imagen);
+        try {
+          await fs.unlink(rutaImagenAnterior);
+        } catch (err) {
+          console.error('Error al eliminar imagen anterior: ', err);
+        }
+      }
+
+      producto.imagen = req.file.filename;
+    }
+
+    //Actualizar campos
+    if (nombre !== undefined) producto.nombre = nombre;
+    if (descripcion !== undefined) producto.descripcion = descripcion;
+    if (precio !== undefined) producto.precio = parseFloat(precio);
+    if (stock !== undefined) producto.stock = parseInt(stock);
+    if (categoriaId !== undefined) producto.categoriaId = parseInt(categoriaId);
+    if (subcategoriaId !== undefined) producto.subcategoriaId = parseInt(subcategoriaId);
 
     //Guardar cambios
     await categoria.save();
