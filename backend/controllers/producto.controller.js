@@ -584,7 +584,7 @@ const eliminarProducto = async (req, res) => {
                     default:
                         return res.status(400).json({
                             success: false,
-                            message: 'Operacion no valida. Use "Aumentar", "Reducir" o "Establecer"'
+                            message: 'Operacion invalida. Use "Aumentar, Reducir o Establecer'
                         });
                 }
 
