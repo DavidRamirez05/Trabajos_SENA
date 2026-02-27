@@ -19,31 +19,43 @@ const Subcategoria = require('../models/Subcategoria');
 const getCarrito = async (req, res) => {
     try {
         // Obtener items del carrito con los productos relacionados
-        const itemsCarrito = await Carrito.findAll({ where: { usuario: req.usuario._id } })
-            .populate({
-                path: 'items.producto',
-                populate: [
-                    {
-                        path: 'categoria',
-                        model: Categoria
-                    },
-                    {
-                        path: 'subcategoria',
-                        model: Subcategoria
-                    }
-                ]
-            });
-        res.json({
+        const itemsCarrito = await Carrito.findAll({ where: { usuario: req.usuario._id },
+            include: [
+                {
+                    model: Producto,
+                    as: 'producto',
+                    attributes: ['id', 'nombre', 'descripcion', 'precio', 'stock', 'imagen', 'activo'],
+                    include: [
+                        {
+                            model: Categoria,
+                            as: 'categoria',
+                            attributes: ['id', 'nombre']
+                        },
+                        {
+                            model: Subcategoria,
+                            as: 'subcategoria',
+                            attributes: ['id', 'nombre']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        //Calcular total del carrito
+        let totalCarrito = 0;
+        itemsCarrito.forEach(item => {
+            totalCarrito += parseFloat(item.precioUnitario) * item.cantidad;
+        });
+
+        //Respuesta exitosa
+        res.status(200).json({
             success: true,
             data: {
-                carrito
+                items: itemsCarrito,
+                resumen: {
+                    totalItems: itemsCarrito.length,
+                    CantidadTotal: itemsCarrito.reduce((sum, item) => sum + item.cantidad, 0),
+                    totalCarrito: totalCarrito.toFixed(2)
+                }
             }
         });
-    } catch (error) {
-        console.error('Error al obtener el carrito:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al obtener el carrito',
-            error: error.message
-        });
-    }
