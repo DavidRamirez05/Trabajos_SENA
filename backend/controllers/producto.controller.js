@@ -593,14 +593,19 @@ const eliminarProducto = async (req, res) => {
 
             res.json({
                 success: true,
-                message: `Stock actualizado a ${nuevoStock}`,
-                data: { producto }
+                message: `Stock  ${operacion === 'aumentar' ? 'aumentado' : operacion === 'reducir' ? 'reducido' : 'establecido'} exitosamente.`,
+                data: { 
+                    productoId: producto.Id,
+                    nombre: producto.nombre,
+                    stockAnterior: operacion === 'establecer' ? null : (operacion === 'aumentar' ? producto.stock - cantidadNum : producto.stock + cantidadNum),
+                    stockNuevo: producto.stock 
+                }
             });
         } catch (error) {
-            console.error("Error en actualizarStockProducto:", error);
+            console.error('Error en actualizarStock:', error);
             res.status(500).json({
                 success: false,
-                message: "Error al actualizar stock del producto",
+                message: "Error al actualizar stock",
                 error: error.message
             });
         }
