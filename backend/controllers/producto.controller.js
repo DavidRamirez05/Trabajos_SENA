@@ -490,7 +490,7 @@ const toggleProducto = async (req, res) => {
 /**
  * Eliminar Producto
  * DELETE /api/admin/productos/:id
- * Solo permite eliminar si no tiene subcategorias ni productos relacionados
+ * Elimina el producto y su imagen
  * @param {Object} req request express
  * @param {Object} res response express
  */
@@ -508,6 +508,126 @@ const eliminarProducto = async (req, res) => {
       });
     }
 
+    // El hook beforeDestroy se encargara de eliminar la imagen del producto
+    await producto.destroy();
+
+    res.json({
+      success: true,
+      message: "Producto eliminado exitosamente",
+    });
+  } catch (error) {
+    console.error("Error en eliminarProducto: ", error);
+    res.status(500).json({
+        success: false,
+        message: "Error al eliminar producto",
+        error: error.message
+      });
+  }
+};
+
+/**
+ * Actualizar stock de un producto
+ * PATCH /api/admin/productos/:id/stock
+ * Body: { cantidad, operacion: "incrementar" o "disminuir" | "Establecer"}
+ * @param {Object} req request express
+ * @param {Object} res response express 
+ */
+
+    const actualizarStockProducto = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { cantidad, operacion } = req.body;
+            
+            if (!cantidad || !operacion) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Se requiere cantidad y operacion'
+                });
+            }
+            
+            const cantidadNum = parseInt(cantidad);
+            if (cantidadNum < 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'La cantidad debe ser un numero positivo'
+                });
+            }
+
+            const producto = await Producto.findByPk(id);
+
+            if (!producto) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Producto no encontrado'
+                });
+            }
+
+            let nuevoStock;
+
+            switch (operacion) {
+                case 'aumentar':
+                    nuevoStock = producto.aumentarstock (cantidadNum);
+                    break;
+                case 'reducir':
+                    nuevoStock = producto.reducirstock (cantidadNum);
+                    if (nuevoStock < 0) {
+                        return res.status(400).json({
+                            success: false,
+                            message: `No hay suficiente stock. Stock actual: ${producto.stock}`
+                        });
+                    }
+                    nuevoStock = producto.reducirstock(cantidadNum);
+                        break;
+                    case 'Establecer':
+                        nuevoStock = cantidadNum;
+                        break;
+                    default:
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Operacion no valida. Use "Aumentar", "Reducir" o "Establecer"'
+                        });
+                }
+
+            producto.stock = nuevoStock;
+            await producto.save();
+
+            res.json({
+                success: true,
+                message: `Stock actualizado a ${nuevoStock}`,
+                data: { producto }
+            });
+        } catch (error) {
+            console.error("Error en actualizarStockProducto:", error);
+            res.status(500).json({
+                success: false,
+                message: "Error al actualizar stock del producto",
+                error: error.message
+            });
+        }
+    };
+
+/**
+
+ * Eliminar Categoria
+ * DELETE /api/admin/categorias/:id
+ * Elimina la categoria solo si no tiene subcategorias ni productos relacionados
+ * @param {Object} req request express
+ * @param {Object} res response express
+ */
+const eliminarCategoria = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    //Buscar categoria
+    const categoria = await Categoria.findByPk(id);
+
+    if (!categoria) {
+      return res.status(404).json({
+        success: false,
+        message: "Categoria no encontrada",
+      });
+    }
+    
     // Validacion verificar que no tenga subcategorias
     const subcategorias = await Subcategoria.count({
       where: { categoriaId: id },
