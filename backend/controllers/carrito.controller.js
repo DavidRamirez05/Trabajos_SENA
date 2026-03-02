@@ -268,3 +268,45 @@ const actualizarItemCarrito = async (req, res) => {
         });
     }
 };
+
+/**
+ * Eliminar item del carrito
+ * Delete /api/carrito/:id
+ */
+
+const eleminarItemCarrito = async (req, res) => {
+    try{
+        const { id } = req.params;
+
+        //Buscar item
+        const item = await Carrito.findOne({
+            where:{
+                id,
+                usuarioId: req.usuario.id
+            }
+        });
+
+        if (!item) {
+            return res.status(404).json({
+                success: false,
+                message: 'Item no encontrado en el carrito'
+            });
+        }
+
+        //Eliminar item
+        await item.destroy();
+        
+        //Respuesta exitosa
+        res.json({
+            success: true,
+            message: 'Item eliminado del carrito'
+        });
+    } catch (error) {
+        console.error('Error en eliminarItemCarrito:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar el item del carrito',
+            error: error.message
+        });
+    }
+};
