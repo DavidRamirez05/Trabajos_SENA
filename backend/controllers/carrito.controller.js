@@ -127,5 +127,34 @@ const agregarAlCarrito = async (req, res) => {
                     message: `Stock insuficiente. Stock disponible: ${producto.stock}. En carrito: ${itemExistente.cantidad}`
                 });
             }
+
+            itemExistente.cantidad = nuevaCantidad;
+            await itemExistente.save();
+
+            //Rescargar producto 
+            await itemExistente.reload({
+                include: [
+                    {
+                        model: Producto,
+                        as: 'producto',
+                        attributes: ['id', 'nombre', 'precio', 'stock', 'imagen'],
+                    }
+                ]
+            });
+
+            return res.json({
+                success: true,
+                message: 'Cantidad actualizada en el carrito',
+                data: { 
+                    item: itemExistente 
+                }
+            });
         }
-    
+        
+        //Validacion 5: Verificar stock disponible
+        if (cantidad > producto.stock) {
+            return res.status(400).json({
+                success: false,
+                message: `Stock insuficiente. Stock disponible: ${producto.stock}`
+            });
+        }
