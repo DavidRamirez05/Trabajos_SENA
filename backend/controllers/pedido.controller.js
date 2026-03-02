@@ -25,17 +25,50 @@ const crearPedido = async (req, res) => {
     try {
         const { direccionEnvio, telefono, metodoPago = 'efectivo', notasAdicionales } = req.body;
 
-        //Validacion 1: Dirrecion requerida 
-        if (!direccionEnvio) {
-            return res.status(400).json({ error: 'La dirección de envío es requerida' });
+        //Dirrecion requerida 
+        if (!direccionEnvio || direccionEnvio.trim() === '') {
+            await t.rollback();
+            return res.status(400).json({ 
+                succes: false,
+                message: 'La dirección de envío es requerida' 
+            });
         }
 
-        //Validacion 2: Telefono requerido
-        if (!telefono) {
-            return res.status(400).json({ error: 'El teléfono es requerido' });
+        //Telefono requerido
+        if (!telefono || telefono.trim() === '') {
+            await t.rollback();
+            return res.status(400).json({
+                succes: false,
+                message: 'El teléfono de contacto es requerido'
+            });
         }
 
-        //Validacion 3: Metodo de pago requerido
-        if (!metodoPago) {
-            return res.status(400).json({ error: 'El método de pago es requerido' });
+        //Metodo de pago requerido
+        const metodosValidos = ['efectivo', 'tarjeta', 'paypal'];
+        if (!metodosValidos.includes(metodoPago)) {
+            await t.rollback();
+            return res.status(400).json({
+                succes: false,
+                message: `Metodo de pago invalido, opciones; ${metodosValidos.join(", ")}`
+            });
+        }
+
+        //Obtner items del carrito
+
+        const carritoItems = await Carrito.findAll({
+            where: { usuarioId: req.usuario.id },
+            include: {
+                model: Producto,
+                as: 'producto',
+                attributes: ['id', 'nombre', 'precio', 'stock', 'activo']
+            },
+            transaction: t
+        });
+
+        if (itemsCarrito.length === 0) {
+            await t.rollback();
+            return res.status(400).json({
+                succes: false,
+                message: 'El carrito esta vacio'
+            });
         }
