@@ -59,3 +59,73 @@ const getCarrito = async (req, res) => {
                 }
             }
         });
+    }  catch (error){
+        console.error('Error en getCarrito:', error);
+        res.status(500).json({
+            success: false,
+            message:'Error al obtener el carrito',
+            error: error.message
+        })
+    }
+};
+/**
+ * Agregar producto al carrito
+ * POST/api/carrito
+ * @param {object} req - Resquest de express
+ * @param {object} res - Response de express
+ */
+const agregarAlCarrito = async (req, res) => {
+    try {
+        const { productoId, cantidad=1 } = req.body;
+        //Validacion 1: Campos requeridos
+        if (!productoId) {
+            return res.status(400).json({
+                success: false,
+                message: 'El campo productoId es requerido'
+            });
+        }
+        //Validacion 2: Cantidad valida
+        if (cantidad <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'La cantidad debe ser al menos 1'
+            });
+        }
+        //Validacion 3: Producto existe y esta activo
+        const producto = await Producto.findByPk(productoId);
+
+        if (!producto) {
+            return res.status(404).json({
+                success: false,                
+                message: 'Producto no encontrado'
+            });
+        }
+
+        if (!producto.activo) {
+            return res.status(400).json({
+                success: false,
+                message: 'El producto no está disponible'
+            });
+        }
+
+        //Validacion 4: Verificarr si ya existe en el carrito
+        const itemExistente = await Carrito.findOne({ 
+            where: { 
+                usuarioId: req.usuario._id, 
+                productoId 
+            } 
+        });
+
+        if (itemExistente) {
+            //Si existe, actualizar cantidad
+            const nuevaCantidad = itemExistente.cantidad + cantidadNum;
+
+            //Validar stock disponible
+            if (nuevaCantidad > producto.stock) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Stock insuficiente. Stock disponible: ${producto.stock}. En carrito: ${itemExistente.cantidad}`
+                });
+            }
+        }
+    
