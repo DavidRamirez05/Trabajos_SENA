@@ -359,8 +359,24 @@ const cancelarPedido = async (req, res) => {
             await t.rollback();
             return res.status(400).json({
                 succes: false,
-                message: 'Solo se puede cancelar pedidos en estado pendiente'
+                message: `No se puede cancelar un pedido en estado '${pedido.estado}'`
             });
         }
+
+        //Devolver stock de los productos
+        for (const detalle of pedido.detalles){
+            const producto = detalle.producto;
+            producto.stock += detalle.cantidad;
+            await producto.save({ transaction: t });
+        }
+        await t.commit();
+    } catch (error) {
+        await t.rollback();
+        console.error('Error en cancelarPedido:', error);
+        res.status(500).json({
+            succes: false,
+            message: 'Error al cancelar el pedido',
+            error: error.message
+        });
     }
 }
