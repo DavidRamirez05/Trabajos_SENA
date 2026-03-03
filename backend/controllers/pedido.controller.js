@@ -72,3 +72,36 @@ const crearPedido = async (req, res) => {
                 message: 'El carrito esta vacio'
             });
         }
+
+        //Verificar stock y productos activos
+        const erroresValidacion = [];
+        let totalPedido = 0;
+
+        for (const item of itemsCarrito) {
+            const producto = item.producto;
+
+            // Verificar si el producto esta activo
+            if (!producto.activo) {
+                erroresValidacion.push(`El producto ${producto.nombre} no esta disponible`);
+                continue;
+            }
+
+            // Verificar stock suficiente
+            if (item.cantidad > producto.stock) {
+                erroresValidacion.push(`No hay suficiente stock. (Stock disponible: ${producto.stock}) solicitado: ${item.cantidad}`);
+            continue;
+            }
+
+            // Calcular total del pedido
+            totalPedido += parseFloat(item.precioUnitario) * item.cantidad;
+        }
+
+        // Si hay errores de validacion, retornar respuesta
+        if (erroresValidacion.length > 0) {
+            await t.rollback();
+            return res.status(400).json({
+                succes: false,
+                message: 'Error de validación',
+                errors: erroresValidacion
+            });
+        }
