@@ -384,5 +384,13 @@ const cancelarPedido = async (req, res) => {
                 pedido
             }
         });
+    } catch (error) {
+        await t.rollback();
+        console.error('Error en cancelarPedido:', error);
+        res.status(500).json({
+            succes: false,
+            message: 'Error al cancelar el pedido',
+            error: error.message
+        });
     }
 }
