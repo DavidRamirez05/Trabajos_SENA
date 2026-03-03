@@ -299,11 +299,59 @@ const getPedidoById = async (req, res) => {
         });
          
         //Respuesta exitosa
+        res.json({
+            succes: false,
+            data: {
+                pedido
+            }
+        });
+    } catch (error) {
+        console.error('Error en getPedidoById:', error);
+        res.status(500).json({
+            succes: false,
+            message: 'Error al obtener el pedido',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Cancelar pedido
+ * Put/api/cliente/pedidos/:id/cancelar
+ * Solo se puede cancelar si el estado es pendiente
+ * Devuelve el stock a los productos
+ */
+
+const cancelarPedido = async (req, res) => {
+    const { sequelize } = require('../config/database');
+    const t = await sequelize.transaction();
+
+    try {
+        const { id } = req.params;
+
+        //Buscar pedido solo los propios pedidos
+        const pedido = await Pedido.findOne({
+            where: {
+                id,
+                usuarioId: req.usuario.id
+            },
+            include: [{
+                model: DetallePedido,
+                as: 'detalles',
+                include: [{
+                    model: Producto,
+                    as: 'producto',
+                }]
+            }],
+            transaction: t
+        });
+        
         if (!pedido) {
+            await t.rollback();
             return res.status(404).json({
                 succes: false,
                 message: 'Pedido no encontrado'
             });
-
-            
         }
+    }
+}
