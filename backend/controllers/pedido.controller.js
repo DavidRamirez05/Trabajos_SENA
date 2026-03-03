@@ -286,9 +286,24 @@ const getPedidoById = async (req, res) => {
                                 model: Categoria,
                                 as: 'categoria',
                                 attributes: ['id', 'nombre']
-                            }
+                            },
+                            {
+                                model: Subcategoria,
+                                as: 'subcategoria',
+                                attributes: ['id', 'nombre']
+                            },
                         ]
                     }
                 }
             ]
         });
+         
+        //Respuesta exitosa
+        if (!pedido) {
+            return res.status(404).json({
+                succes: false,
+                message: 'Pedido no encontrado'
+            });
+
+            
+        }
