@@ -369,14 +369,20 @@ const cancelarPedido = async (req, res) => {
             producto.stock += detalle.cantidad;
             await producto.save({ transaction: t });
         }
+
+        //Actualizar estado del pedido
+        pedido.estado = 'cancelado';
+        await pedido.save({ transaction: t});
+
         await t.commit();
-    } catch (error) {
-        await t.rollback();
-        console.error('Error en cancelarPedido:', error);
-        res.status(500).json({
-            succes: false,
-            message: 'Error al cancelar el pedido',
-            error: error.message
+
+        //Respuesta exitosa
+        res.json({
+            succes: true,
+            message: 'Pedido cancelado exitosamente',
+            data: {
+                pedido
+            }
         });
     }
 }
