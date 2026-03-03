@@ -101,7 +101,149 @@ const crearPedido = async (req, res) => {
             await t.rollback();
             return res.status(400).json({
                 succes: false,
-                message: 'Error de validación',
+                message: 'Error en validación de carrito',
                 errors: erroresValidacion
             });
         }
+
+        //Crear pedido
+        const Pedido = await Pedido.create({
+            usuarioId: req.user.usuarioid,
+            total: totalPedido,
+            estado: 'pendiente',
+            direccionEnvio,
+            telefono,
+            metodoPago,
+            notasAdicionales,
+        }, { transaction: t });
+
+        //Crear detalles del pedido y actualizar stock
+        const  detallePedidos = [];
+
+        for (const item of itemsCarrito) {
+            const producto = item.producto;
+
+            //Crear detalle del pedido
+            const detalle = await DetallePedido.create({
+                pedidoId: pedido.id,
+                productoId: producto.id,
+                cantidad: item.cantidad,
+                precioUnitario: item.precioUnitario,
+                subtotal: parseFloat(item.precioUnitario) * item.cantidad
+            }, { transaction: t });
+
+            detallesPedido.push(detalle);
+
+            //Reducir stock del producto
+            producto.stock -= item.cantidad;
+            await producto.save({ transaction: t });
+        }
+
+        //Vaciar carrito
+        await Carrito.destroy({
+            where: { usuarioId: req.usuario.id },
+            transaction: t
+        });
+
+        //Confirmar transaccion
+        await t.commit();
+
+        //Cargar pedido con relaciones
+        await pedido.reload({
+            include: [
+                {
+                    model: Usuario,
+                    as: 'usuario',
+                    attributes: ['id', 'nombre', 'email']
+                },
+                {
+                    model: DetallePedido,
+                    as: 'detalles',
+                    include: {
+                        model: Producto,
+                        as: 'producto',
+                        attributes: ['id', 'nombre', 'precio', 'imagen']
+                    }
+                }
+            ]
+        });
+
+        //Respuesta exitosa
+        res.status(201).json({
+            succes: true,
+            message: 'Pedido creado exitosamente',
+            data: {
+                pedido,
+            }
+        });
+
+    } catch (error) {
+        //Revertir transaccion en caso de error
+        await t.rollback();
+        console.error('Error al crear pedido:', error);
+        res.status(500).json({
+            succes: false,
+            message: 'Error al crear el pedido',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Obtener pedidos del cliente
+ * GET/api/clientes/pedidos
+ * query: ?estado=pendiente&pagina=1&limite=10
+ */
+
+const getMisPedidos = async (req, res) => {
+    try {
+        const { estado, pagina = 1, limite = 10 } = req.query;
+        
+        //Filtros 
+        const where = { usuarioId: req.usuario.id };
+        if (estado) where.estado = estado;
+
+        //Paginacion
+        const offset = (parseInt(pagina) - 1) * parseInt(limite);
+
+        //Consultar pedidos
+        const { count, rows: pedidos } = await Pedido.findAndCountAll({
+            where,
+            include: [
+                {
+                    model: DetallePedido,
+                    as: 'detalles',
+                    include:  [{
+                        model: Producto,
+                        as: 'producto',
+                        attributes: ['id', 'nombre', 'imagen']
+                    }]
+                }
+            ],
+            limit: parseInt(limite),
+            offset,
+            order: [['createdAt', 'DESC']]
+        });
+    
+    //Respuesta exitosa
+    res.json({
+        succes: true,
+        data: {
+            pedidos,
+            paginacion: {
+                total: count,
+                pagina: parseInt(pagina),
+                limite: parseInt(limite),
+                totalPaginas: Math.ceil(count / parseInt(limite))
+            }
+        }
+    });
+    } catch (error) {
+        console.error('Error en getMisPedidos:', error);
+        res.status(500).json({
+            succes: false,
+            message: 'Error al obtener los pedidos',
+            error: error.message
+        });
+    }
+};
