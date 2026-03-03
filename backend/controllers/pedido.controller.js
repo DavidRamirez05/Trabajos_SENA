@@ -353,5 +353,14 @@ const cancelarPedido = async (req, res) => {
                 message: 'Pedido no encontrado'
             });
         }
+
+        //Solo se puede cancelar si esta en pendiente 
+        if (pedido.estado !== 'pendiente') {
+            await t.rollback();
+            return res.status(400).json({
+                succes: false,
+                message: 'Solo se puede cancelar pedidos en estado pendiente'
+            });
+        }
     }
 }
