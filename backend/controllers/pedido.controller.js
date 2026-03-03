@@ -248,3 +248,47 @@ const getMisPedidos = async (req, res) => {
         });
     }
 };
+
+/**
+ * Obtener un pedido especifico por ID
+ * GET/api/cliente/pedidos/:id
+ * Solo el admin puede ver todos los pedidos
+ */
+
+const getPedidoById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        //Construir filtros (Cliente solo puede ver sus pedidos, admin puede ver todos)
+        const where = { id };
+        if (req.usuario.rol !== 'administrador') {
+            where.usuarioId = req.usuario.id;
+        }
+
+        //Buscar pedido
+        const pedido  = await Pedido.findOne({
+            where,
+            include: [
+                {
+                    model: Usuario,
+                    as: 'usuario',
+                    attributes: ['id', 'nombre', 'email']
+                },
+                {
+                    model: DetallePedido,
+                    as: 'detalles',
+                    include: {
+                        model: Producto,
+                        as: 'producto',
+                        attributes: ['id', 'nombre', 'descripcion', 'imagen'],
+                        include: [
+                            {
+                                model: Categoria,
+                                as: 'categoria',
+                                attributes: ['id', 'nombre']
+                            }
+                        ]
+                    }
+                }
+            ]
+        });
