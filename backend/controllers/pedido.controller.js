@@ -12,6 +12,7 @@ const Producto = require('../models/Producto');
 const Usuario = require('../models/Usuario');
 const Categoria = require('../models/Categoria');
 const Subcategoria = require('../models/Subcategoria');
+const e = require('cors');
 
 /**
  * Crear pedido desde el carrito (Checkout)
