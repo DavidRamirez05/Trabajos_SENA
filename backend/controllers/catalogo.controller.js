@@ -28,17 +28,40 @@ const getProductos = async (req, res) => {
         const { 
             categoriaId, 
             subcategoriaId,
-            activo,
-            conStock,
             buscar,
+            precioMin,
+            precioMax,
+            orden = 'reciente',
             pagina = 1,
-            limite = 100,
+            limite = 12,
         } = req.query;
+        const { Op } = requiere('sequelize');
         
-        //Construir filtros
-        const where = {};
+        //Filtros base solo para prodcutos activos y con stock
+        const where = {
+            activo: true,
+            stock: { [Op.gt]:0 }
+        };
+
+        //Filtros opcionales
         if (categoriaId) where.categoriaId = categoriaId;
         if (subcategoriaId) where.subcategoriaId = subcategoriaId;
+
+        //Busqueda de texto
+        if(buscar){
+            where[Op.or] = [
+                { nombre: { [ Op.like]: `%${buscar}%`}}, //Permite buscar por nombre o descripcion
+            ];
+        }
+
+        //Filtro por rango de precio
+        if(precioMin && precioMax) {
+            where.precio = {};
+            if (precioMin) where.precio[Op.gte] = parseFloat(precioMin);
+            if (precioMax) where.precio[Op.gte] = parseFloat(precioMax);
+        }
+
+
         if (activo !== undefined) where.activo = activo === 'true';
         if (conStock === 'true') where.stock = { [require ('sequelize').Op.gt]: 0 };
 
