@@ -448,6 +448,7 @@ const getAllPedidos = async (req, res) => {
                     limite: parseInt(limite),
                     totalPaginas: Math.ceil(count / parseInt(limite))
                 }
+            }
         });
     } catch (error) {
         console.error('Error en getAllPedidos:', error);
@@ -490,6 +491,20 @@ const actualizarEstadoPedido = async (req, res) => {
     
         //Actualizar estados
         pedido.estado = estado;
+        await pedido.save();
+
+        //Recargar las relaciones
+        await pedido.reload({
+            include: [
+                { 
+                model: Usuario,
+                as: 'usuario',
+                attributes: ['id', 'nombre', 'email']
+                }
+            ]
+        });
+
+        //Respuesta exitosa
         
     }
 }
