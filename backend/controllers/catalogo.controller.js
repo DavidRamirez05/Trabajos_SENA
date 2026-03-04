@@ -61,6 +61,22 @@ const getProductos = async (req, res) => {
             if (precioMax) where.precio[Op.gte] = parseFloat(precioMax);
         }
 
+        //Ordenamiento
+        let order; 
+        switch (order){
+            case 'precio_asc':
+                order = [['precio','ASC']];
+                break;
+            case 'precio_desc':
+                order = [['precio','DESC']];
+                break;
+            case 'nombre':
+                order = [['nombre','ASC']];
+                break;
+            case 'reciente':
+                order = [['createdAt','DESC']];
+                break;
+        }
 
         if (activo !== undefined) where.activo = activo === 'true';
         if (conStock === 'true') where.stock = { [require ('sequelize').Op.gt]: 0 };
