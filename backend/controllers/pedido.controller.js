@@ -442,10 +442,12 @@ const getAllPedidos = async (req, res) => {
             succes: true,
             data: {
                 pedidos,
-                total: count,
-                pagina: parseInt(pagina),
-                limite: parseInt(limite)
-            }
+                paginacion: {
+                    total: count,
+                    pagina: parseInt(pagina),
+                    limite: parseInt(limite),
+                    totalPaginas: Math.ceil(count / parseInt(limite))
+                }
         });
     } catch (error) {
         console.error('Error en getAllPedidos:', error);
@@ -454,5 +456,40 @@ const getAllPedidos = async (req, res) => {
             message: 'Error al obtener los pedidos',
             error: error.message
         });
+    }
+};
+
+/**
+ * Admin actuliza el estado del pedido
+ * PUT/api/admin/pedidos/:id/estado
+ * body: { estado}
+ */
+
+const actualizarEstadoPedido = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+
+        //Validar estado
+        const estadosValidos = ['pendiente', 'enviado', 'entregado', 'cancelado'];
+        if (!estadosValidos.includes(estado)) {
+            return res.status(400).json({
+                sucess: false,
+                message: `Estado invalido, opciones: ${estadosValidos.json(',')}`
+            });
+        }
+
+        //Buscar pedido
+        const pedido = await Pedido.findByPk(id);
+        if (!pedido) {
+            return res.status(404).json({
+                succes: false,
+                message: 'Pedido no encontrado'
+            });
+        }
+    
+        //Actualizar estados
+        pedido.estado = estado;
+        
     }
 }
