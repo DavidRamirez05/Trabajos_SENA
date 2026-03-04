@@ -1,6 +1,6 @@
 /**
- * Controller de productos
- * maneja las operaciones crud y activar y desactivar categorias
+ * Controller de catalogo
+ * Permite ver los productos sin iniciar sesion
  * solo accesible para administradores
  */
 
