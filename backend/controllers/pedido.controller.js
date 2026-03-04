@@ -534,7 +534,7 @@ const getEstadisticasPedidos = async (req, res) => {
         //Total de pedidos
         const totalPedidos = await Pedido.count();
 
-        //pedidos estado
+        //Pedidos estado
         const pedidosPorEstado = await Pedido.findAll({
             attributes: [
                 'estado',
@@ -544,10 +544,10 @@ const getEstadisticasPedidos = async (req, res) => {
             group: ['estado']
         });
 
-        //total de ventas
+        //Total de ventas
         const totalVentas = await Pedido.sum('total');
 
-        //pedidos hoy
+        //Pedidos hoy
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
 
