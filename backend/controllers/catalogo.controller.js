@@ -11,18 +11,16 @@ const Producto = require('../models/Producto');
 const Categoria = require('../models/Categoria');
 const subcategoria = require('../models/subcategoria');
 
-//Importar path  y fs paramanejo de imagenes
-const path = require('path');
-const fs = require('fs');
-
 /**
- * Obtener todos los productos 
+ * Obtener todos los productos al publico
+ * Get/api/catalogo/productos
  * query params: 
- * categoriaId: Id de la categoria para filtrar productos por categoria
- * subcategoriaId: Id de la subcategoria para filtrar productos por subcategoria
- * activo: true/false para filtrar por estado activo
+ * categoriaId: Id de la categoria para filtrar por categoria
+ * subcategoriaId: Id de la subcategoria para filtrar por subcategoria
+ * preciomin, preciomax, rango de precios nombre reciente
  * @param {Object} req request Express
  * @param {Object} res responde Express
+ * Solo muestra los productos activos y con stock
  */
 
 const getProductos = async (req, res) => {
