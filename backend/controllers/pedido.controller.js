@@ -504,7 +504,93 @@ const actualizarEstadoPedido = async (req, res) => {
             ]
         });
 
-        //Respuesta exitosa
-        
+        //respuesta exitosa
+        res.json({
+            success: true,
+            message: 'estado del pedido actualizado',
+            data: {
+                pedido
+            }
+        });
+    } catch (error) {
+        console.error('Error en actualizarEstadoPedido', error);
+        res.satus(500).json({
+            success: false,
+            message: 'Error al actulizar el estado del pedido',
+            error: error.message
+        });
     }
-}
+};
+
+/**
+ * Obtener estadisticas de pedidos
+ * Get /api/admin/pedidos/estadisticas
+ */
+
+const getEstadisticasPedidos = async (req, res) => {
+    try {
+        const { Op, fn, col } = require('sequelize');
+
+        //Total de pedidos
+        const totalPedidos = await Pedido.count();
+
+        //pedidos estado
+        const pedidosPorEstado = await Pedido.findAll({
+            attributes: [
+                'estado',
+                [fn('COUNT', col('id')), 'cantidad'],
+                [fn('SUM', col('total')), 'totalVentas'],
+            ],
+            group: ['estado']
+        });
+
+        //total de ventas
+        const totalVentas = await Pedido.sum('total');
+
+        //pedidos hoy
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        const pedidosHoy = await Pedido.count({
+            where: {
+                createdAt: { [Op.gte]: hoy } //pedidosultimos 7 dias
+            }
+        });
+
+        //Respuesta exitosa
+        res.json({
+            success: true,
+            data: {
+                totalPedidos,
+                pedidosHoy,
+                ventasTotales: parseFloat(totalVentas || 0).toFixed(2),
+                pedidosPorEstado: pedidosPorEstado.map(p => ({
+                    estado: p.estado,
+                    cantidad: parseInt(p.getDataValue('cantidad')),
+                    totalVentas: parseFloat(p.getDataValue('totaolVentas') || 0).toFixed(2)
+                }))
+            }
+        });
+    } catch (error) {
+        console.error('Error en getEstadisticasPedido', error);
+        res.satus(500).json({
+            success: false,
+            message: 'Error al obtener las estadisticas del pedido',
+            error: error.message
+        });
+    }
+};
+
+//Exportar controladores
+module.exports = {
+    //clientes
+    crearPedido,
+    getMisPedidos,
+    getPedidoById,
+    cancelarPedido,
+    
+    //admin
+    getAllPedidos,
+    actualizarEstadoPedido,
+    getEstadisticasPedidos
+};
