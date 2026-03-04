@@ -393,4 +393,66 @@ const cancelarPedido = async (req, res) => {
             error: error.message
         });
     }
+} 
+
+/**
+ * Admin obtener todos los pedidos
+ * Get/api/admin/pedidos
+ * query ?estado=pendiente&usuarioId=1&pagina=1&limite=10
+ */
+
+const getAllPedidos = async (req, res) => {
+    try {
+        const { estado, usuarioId, pagina = 1, limite = 20 } = req.query;
+        
+        //Filtros
+        const where = {};
+        if (estado) where.estado = estado;
+        if (usuarioId) where.usuarioId = usuarioId;
+
+        //Paginacion
+        const offset = (parseInt(pagina) - 1) * parseInt(limite);
+
+        //Consultar pedidos
+        const { count, rows: pedidos} = await Pedido.findAndCountAll({
+            where,
+            include: [
+                {
+                    model: Usuario,
+                    as: 'usuario',
+                    attributes: ['id', 'nombre', 'email']
+                },
+                {
+                    model: DetallePedido,
+                    as: 'detalles',
+                    include: [{
+                        model: Producto,
+                        as: 'producto',
+                        attributes: ['id', 'nombre', 'imagen']
+                    }]
+                }
+            ],
+            limit: parseInt(limite),
+            offset,
+            order: [['createdAt', 'DESC']]
+        });
+
+        //Respuesta exitosa
+        res.json({
+            succes: true,
+            data: {
+                pedidos,
+                total: count,
+                pagina: parseInt(pagina),
+                limite: parseInt(limite)
+            }
+        });
+    } catch (error) {
+        console.error('Error en getAllPedidos:', error);
+        res.status(500).json({
+            succes: false,
+            message: 'Error al obtener los pedidos',
+            error: error.message
+        });
+    }
 }
