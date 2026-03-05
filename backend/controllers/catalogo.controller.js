@@ -78,25 +78,24 @@ const getProductos = async (req, res) => {
                 break;
         }
 
-        if (activo !== undefined) where.activo = activo === 'true';
-        if (conStock === 'true') where.stock = { [require ('sequelize').Op.gt]: 0 };
-
         //Paginacion
         const offset = (parseInt(pagina) - 1) * parseInt(limite);
 
-        //Opciones de consulta
-        const opciones = {
+        //Consultar productos
+        const opciones = { count, rows: productos } = await Producto.findAndCountAll({
             where,
             include: [
                 {
                     model: Categoria,
                     as: 'categoria',
-                    attributes: ['id', 'nombre']
+                    attributes: ['id', 'nombre'],
+                    where: { activo: true}
                 },
                 {
                     model: Subcategoria,
                     as: 'subcategoria',
-                    attributes: ['id', 'nombre', 'descripcion']
+                    attributes: ['id', 'nombre', 'descripcion'],
+                    where: { activo: true}
                 },
             ],
             limit: parseInt(limite),
