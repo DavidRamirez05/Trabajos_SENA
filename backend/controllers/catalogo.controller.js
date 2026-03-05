@@ -103,6 +103,10 @@ const getProductos = async (req, res) => {
             order: [['nombre', 'ASC']]
         });
 
+
+
+        //Parte donde me perdi
+        
         //Respuesta Exitosa
         res.json({
             success: true,
