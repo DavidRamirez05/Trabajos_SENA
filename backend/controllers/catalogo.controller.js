@@ -94,14 +94,14 @@ const getProductos = async (req, res) => {
                 {
                     model: Subcategoria,
                     as: 'subcategoria',
-                    attributes: ['id', 'nombre', 'descripcion'],
+                    attributes: ['id', 'nombre'],
                     where: { activo: true}
                 },
             ],
             limit: parseInt(limite),
             offset,
-            order: [['createdAt', 'ASC']]
-        };
+            order: [['nombre', 'ASC']]
+        });
 
         // Obtener productos y total
         const { count, rows: productos } = await Producto.findAndCountAll(opciones);
