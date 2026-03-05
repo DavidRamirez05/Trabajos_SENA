@@ -103,9 +103,6 @@ const getProductos = async (req, res) => {
             order: [['nombre', 'ASC']]
         });
 
-        // Obtener productos y total
-        const { count, rows: productos } = await Producto.findAndCountAll(opciones);
-
         //Respuesta Exitosa
         res.json({
             success: true,
