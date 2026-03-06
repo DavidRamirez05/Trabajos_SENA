@@ -96,29 +96,86 @@ const registrar = async (req, res) => {
                 }   
             });
         } catch (error) {
-                console.error('Error en crearUsuario: ', error);
-                if (error.name === 'SequelizeValidationError') {
+                console.error('Error en registrar: ', error);{
                     return res.status(400).json({
                         success: false,
-                        message: 'Error de validacion',
+                        message: 'Error al registrar usuario',
                         errors: error.errors.map(e => e.message)
                     });
                 }
+            }
+        };
 
-                res.status(500).json({
-                    success: false,
-                    message: 'Error al crear usuario',
-                    error: error.message
-                });
-        }
-};
-
-/**Actualizar Usuario
- * PUT /api/admin/usuarios/:id
- * body: {nombre, apellido, email, password, rol, telefono, direccion}
- * @param {Object} req request Express
- * @param {Object} res responde Express
+/** 
+ * Iniciar sesion login
+ * Autentica un usuario con email y password
+ * Retorna el usuario y un token JWT si las credenciales son correctas
+ * POST/api/auth/login
+ * body: {email, password}
  */
+
+const login = async (req, res) => {
+    try {
+        // Extraer credenciales del body
+        const { email, password } = req.body;
+
+        // Validacion 1: Verificar que se proporcioonaron email y password
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Faltan campos requeridos: email, password'
+            });
+        }
+
+        // Buscar usuario por email
+        const usuario = await Usuario.findOne({ where: { email } });
+
+        if (!usuario) {
+            return res.status(401).json({
+                success: false,
+                message: 'Credenciales inválidas'
+            });
+        }
+
+        // Verificar contraseña
+        const esValida = await bcrypt.compare(password, usuario.password);
+
+        if (!esValida) {
+            return res.status(401).json({
+                success: false,
+                message: 'Credenciales inválidas'
+            });
+        }
+
+        // Generar token JWT
+        const token = generarToken({
+            id: usuario.id,
+            email: usuario.email,
+            rol: usuario.rol
+        });
+
+        // Eliminar el campo de contraseña de la respuesta
+        const usuarioRespuesta = usuario.toJSON();
+        delete usuarioRespuesta.password;
+
+        // Responder con éxito
+        res.json({
+            success: true,
+            message: 'Inicio de sesión exitoso',
+            data: {
+                usuario: usuarioRespuesta,
+                token
+            }
+        });
+    } catch (error) {
+        console.error('Error en login: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al iniciar sesión',
+            error: error.message
+        });
+    }
+};
 
 const actualizarUsuario = async (req, res) => {
     try {
