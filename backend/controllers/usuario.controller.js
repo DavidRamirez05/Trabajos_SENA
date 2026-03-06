@@ -250,85 +250,87 @@ const actualizarUsuario = async (req, res) => {
 };
 
 /**
- * Activar/Desactivar categoria
- * PATCH /api/admin/categorias/:id/estado
+ * Activar/Desactivar Usuario
+ * PATCH /api/admin/usuarios/:id/estado
  * 
- * Al desactivar una categoria se desactivan todas las subcategorias relacionadas
- * Al desactivar una subcategoria se desactivan todos los productos relacionados
+ * Al desactivar un usuario
  * @param {Object} req request Express
  * @param {Object} res response Express
  */
-const toggleCategoria = async (req, res) => {
+const toggleUsuario = async (req, res) => {
     try {
         const {id} = req.params;
 
-        //Buscar categoria
-        const categoria = await Categoria.findByPk(id);
+        //Buscar usuario
+        const usuario = await Usuario.findByPk(id);
 
-        if(!categoria) {
+        if(!usuario) {
             return res.status(404).json({
                 success: false,
-                message: 'Categoria no encontrada'
+                message: 'Usuario no encontrado'
             });
         }
 
-        //Alternar estado activo
-        const nuevoEstado = !categoria.activo;
-        categoria.activo = nuevoEstado;
+        //No permitir desactivar un administrador si es él mismo
+        if (usuario.id === req.usuario.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'No se puede desactivar tu propia cuenta'
+            });
+        }
 
-        // Guardar cambios
-        await categoria.save();
+        usuario.activo = !usuario.activo;
+        await usuario.save();
 
-        //Contar cuantos registros se afectaron 
-        const subcategoriasAfectadas = await Subcategoria.count({ where: { categoriaId:id}
-        });
-
-        const productosAfectadas = await Producto.count({ where: { categoriaId:id}
-        });
-
-        //Respuesta exitosa
         res.json({
             success: true,
-            message: `Categoria ${nuevoEstado ? 'activada' : 'desactivada'} exitosamente`,
-            data:{
-                categoria,
-                afectados: {
-                    subcategorias: subcategoriasAfectadas,
-                    productos: productosAfectados
-                }
+            message: `Usuario ${usuario.activo ? 'activado' : 'desactivado'} exitosamente`,
+            data: {
+                usuario: usuario.toJSON()
             }
         });
 
     } catch (error) {
-        console.error('Error en toggleCategoria:', error);
+        console.error('Error en toggleUsuario: ', error);
         res.status(500).json({
             success: false,
-            message: 'Error al cambiar estado de la categoria',
+            message: 'Error al cambiar estado del usuario',
             error: error.message
         });
     }
 };
 
 /**
- * Eliminar categoria
- * DELETE /api/admin/categorias/:id
+ * Eliminar Usuario
+ * DELETE /api/admin/usuarios/:id
  * Solo permite eliminar si no tiene subcategorias ni productos relacionados
  * @param {Object} req request Express
  * @param {Object} res response Express
  */
-const eliminarCategoria = async (req, res) => {
+const eliminarUsuario = async (req, res) => {
     try {
         const { id } = req.params;
 
-        //Buscar categoria
-        const categoria = await Categoria.findByPk(id);
+        //Buscar usuario
+        const usuario = await Usuario.findByPk(id);
 
-        if (!categoria) {
+        if (!usuario) {
             return res.status(404).json({
                 success: false,
-                message: 'Categoria no encontrada'
+                message: 'Usuario no encontrado'
+            }); 
+        }
+
+        //No permitir eliminar un administrador si es él mismo
+        if (usuario.id === req.usuario.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'No se puede eliminar tu propia cuenta'
             });
         }
+        await usuario.destroy();
+
+
 
         //Validacion verificar que no tenga subcategorias
         const subcategorias = await Subcategoria.count({
