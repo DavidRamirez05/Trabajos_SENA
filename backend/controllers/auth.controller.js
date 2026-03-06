@@ -127,8 +127,11 @@ const login = async (req, res) => {
             });
         }
 
-        // Buscar usuario por email
-        const usuario = await Usuario.findOne({ where: { email } });
+        // Validacion 2: Buscar usuario por email
+        // Necesitamos incluir el password aqui normalmente se excluye por seguridad
+        const usuario = await Usuario.scope('withPassword').findOne({ 
+            where: { email } 
+        });
 
         if (!usuario) {
             return res.status(401).json({
@@ -136,55 +139,58 @@ const login = async (req, res) => {
                 message: 'Credenciales inválidas'
             });
         }
+    
+        // Validacion 3: Verificar que el usuario esta activo
+        if (!usuario.activo) {
+            return res.status(403).json({
+                success: false,
+                message: 'Usuario inactivo. Contacta al administrador.'
+            });
+        }
 
-        // Verificar contraseña
-        const esValida = await bcrypt.compare(password, usuario.password);
+        // Validacion 4: Verificar la contraseña
+        // Usamos el metodo comparar Password del modelo usuario
+        const passwordValida = await usuario.compararPassword(password);
 
-        if (!esValida) {
+        if (!passwordValida) {
             return res.status(401).json({
                 success: false,
                 message: 'Credenciales inválidas'
             });
         }
 
-        // Generar token JWT
+        // Generar token JWT con datos basicos del usuario
         const token = generarToken({
             id: usuario.id,
             email: usuario.email,
             rol: usuario.rol
         });
+        
+        // Preparar respuesta si password
+        const usuarioSinPassword = usuario.toJSON();
+        delete usuarioSinPassword.password;
 
-        // Eliminar el campo de contraseña de la respuesta
-        const usuarioRespuesta = usuario.toJSON();
-        delete usuarioRespuesta.password;
-
-        // Responder con éxito
+        // Respuesta exitosa
         res.json({
             success: true,
-            message: 'Inicio de sesión exitoso',
+            message: 'Inicio de sesion exitosa',
             data: {
-                usuario: usuarioRespuesta,
+                usuario: usuarioSinPassword,
                 token
             }
-        });
-    } catch (error) {
-        console.error('Error en login: ', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al iniciar sesión',
-            error: error.message
-        });
-    }
-};
+        })
 
-const actualizarUsuario = async (req, res) => {
+/**
+ * Obtener perfil del usuario autenticado
+ * Requiere middleware verificarAuth 
+ * GET /api/auth/profile
+ * headers: { Authorization: 'Bearer TOKEN' }
+ */
+const getMe = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {nombre, apellido, telefono, direccion, rol} = req.body;
-
-        //Buscar usuario
-        const usuario = await Usuario.findByPk(id);
-
+        // El usuario ya esta en req.usuario
+        const usuario = await Usuario.findByPk(req.usuario.id);
+        
         if (!usuario) {
             return res.status(404).json({
                 success: false,
@@ -192,11 +198,42 @@ const actualizarUsuario = async (req, res) => {
             });
         }
 
-        //validar rol si se proporciona
-        if (rol && ['cliente', 'administrador'].includes(rol)) {
-            return res.status(400).json({
+        // Respuesta exitosa
+        res.json({
+            success: true,
+            message: 'Perfil obtenido correctamente',
+            data: {
+                usuario
+            }
+        });
+    } catch (error) {
+        console.error('Error en getMe: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener el perfil',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Actualizar perfil de usuario autenticado
+ * Permite al usuario actualizar su informacion personal
+ * PUT/api/auth/me
+ * @param {Object} req request Express
+ * @param {Object} res response Express
+ */
+const updateMe = async (req, res) => {
+    try {
+        const {nombre, apellido, telefono, direccion} = req.body;
+
+        //Buscar usuario
+        const usuario = await Usuario.findByPk(req.usuario.id);
+
+        if (!usuario) {
+            return res.status(404).json({
                 success: false,
-                message: 'rol invalido'
+                message: 'Usuario no encontrado'
             });
         }
 
@@ -213,7 +250,7 @@ const actualizarUsuario = async (req, res) => {
         //Respuesta exitosa
         res.json({
             success: true,
-            message: 'Usuario actualizado correctamente',
+            message: 'Perfil actualizado correctamente',
             data: {
                 usuario: usuario.toJSON()
             }
