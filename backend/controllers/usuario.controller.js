@@ -1,7 +1,6 @@
 /**
  * Controller de usuario ADMIN
  * maneja la gestion de usuarios por administradores
- * solo accesible para administradores
  */
 
 /**
