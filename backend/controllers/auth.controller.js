@@ -178,7 +178,7 @@ const login = async (req, res) => {
                 usuario: usuarioSinPassword,
                 token
             }
-        })
+        });
 
 /**
  * Obtener perfil del usuario autenticado
@@ -256,160 +256,85 @@ const updateMe = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error en actualizarUsuario: ', error);
+        console.error('Error en actualizar Perfil: ', error);
         return res.status(500).json({
             success: false,
-            message: 'Error al actualizar usuario',
+            message: 'Error al actualizar perfil',
             error: error.message
         });
-    } 
-};
+    };
 
-/**
- * Activar/Desactivar Usuario
- * PATCH /api/admin/usuarios/:id/estado
- * 
- * Al desactivar un usuario
- * @param {Object} req request Express
- * @param {Object} res response Express
- */
-const toggleUsuario = async (req, res) => {
-    try {
-        const {id} = req.params;
+    /**
+     * Cambiar la contraseña del usuario autenticado
+     * Permite al usuario cambiar su contraseña
+     * Require su contraseña actual por seguridad
+     * Put /api/auth/me/password
+     */
+        const changePassword = async (req, res) => {
+            try {
+                const { passwordActual, passwordNueva } = req.body;
 
-        //Buscar usuario
-        const usuario = await Usuario.findByPk(id);
+                // Validacion 1: Verificar que se proporcionan ambas contraseñas
+                if (!passwordActual || !passwordNueva) {
+                    return res.status(400).json({ 
+                        success: false,
+                        message: 'Se requiere password actual y nueva'
+                    });
+                }
 
-        if(!usuario) {
-            return res.status(404).json({
+                // Validacion 2: Verificar que se proporcionan ambas contraseñas
+                if (passwordNueva.length < 6) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'La contraseña actual debe tener al menos 6 caracteres'
+                    });
+                }
+
+                // Validacion 3: Buscar usuario con password incluido
+                const usuario = await Usuario.scope('withPassword').findByPk(req.usuario.id);
+                if (!usuario) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Usuario no encontrado'
+                    })
+                }
+
+                // Validacion 4: Verificar que la contraseña actual es correcta
+                const passwordValida = await usuario.compararPassword(passwordActual);
+                if (!passwordValida) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Contraseña actual incorrecta'
+                    });
+                }
+
+                // Actualizar contraseña
+                usuario.password = passwordNueva;
+                await usuario.save();
+
+
+                // Respuesta exitosa
+                res.json({
+                    success: true,
+                    message: 'Contraseña actualizada correctamente'
+                });
+
+        } catch (error) {
+            console.error('Error en changePassword: ', error);
+            res.status(500).json({
                 success: false,
-                message: 'Usuario no encontrado'
+                message: 'Error al cambiar contraseña',
+                error: error.message
             });
         }
-
-        //No permitir desactivar un administrador si es él mismo
-        if (usuario.id === req.usuario.id) {
-            return res.status(400).json({
-                success: false,
-                message: 'No se puede desactivar tu propia cuenta'
-            });
-        }
-
-        usuario.activo = !usuario.activo;
-        await usuario.save();
-
-        res.json({
-            success: true,
-            message: `Usuario ${usuario.activo ? 'activado' : 'desactivado'} exitosamente`,
-            data: {
-                usuario: usuario.toJSON()
-            }
-        });
-
-    } catch (error) {
-        console.error('Error en toggleUsuario: ', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al cambiar estado del usuario',
-            error: error.message
-        });
     }
 };
-
-/**
- * Eliminar Usuario
- * DELETE /api/admin/usuarios/:id
- * Solo permite eliminar si no tiene subcategorias ni productos relacionados
- * @param {Object} req request Express
- * @param {Object} res response Express
- */
-const eliminarUsuario = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        //Buscar usuario
-        const usuario = await Usuario.findByPk(id);
-
-        if (!usuario) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            }); 
-        }
-
-        //No permitir eliminar un administrador si es él mismo
-        if (usuario.id === req.usuario.id) {
-            return res.status(400).json({
-                success: false,
-                message: 'No se puede eliminar tu propia cuenta'
-            });
-        }
-        await usuario.destroy();
-
-        //Respuesta Exitosa
-        res.json({
-            success: true,
-            message: 'Usuario eliminado Exitosamente'
-        });
-
-    }  catch (error) {
-        console.error('Error al eliminar usuario', error);
-        res.status(400).json({
-            success: false,
-            message: 'Error al eliminar usuario',
-            error: error.message
-        });
-    }
-};
-
-/**
- * Obtener estadisticas de usuarios
- * GET /api/admin/usuarios/:id/estadisticas
- * 
- * @param {Object} req request Express|}
- * @param {Object} res response Express
- */
-const getEstadisticasUsuarios = async (req, res) => {
-    try {
-        //Datos de usuarios
-        const totalUsuarios = await Usuario.count();
-        const totalClientes = await Usuario.count({ where: { rol: 'cliente' } });
-        const totalAdmins = await Usuario.count({ where: { rol: 'admin' } });
-        const usuariosActivos = await Usuario.count({ where: { activo: true } });
-        const usuariosInactivos = await Usuario.count({ where: { activo: false } });
-
-        //Respuesta exitosa
-        res.json({
-            success: true,
-            data: {
-                total: totalUsuarios,
-                porRol: {
-                    cliente: totalClientes,
-                    admininistradores: totalAdmins
-                },
-                porEstado: {
-                    activos: usuariosActivos,
-                    inactivos: usuariosInactivos,
-                },
-            }
-        });
-    } catch (error) {
-        console.error('Error en getEstadisticasUsuarios: ', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al obtener estadisticas de usuarios',
-            error: error.message
-        });
-    }
-};
-
+    
 //Exportar todos los controladores
 module.exports = {
-    getUsuarios,
-    getUsuarioById,
-    crearUsuario,
-    actualizarUsuario,
-    toggleUsuario,
-    eliminarUsuario,
-    getEstadisticasUsuarios
+    registrar,
+    login,
+    getMe,
+    updateMe,
+    changePassword
 };
