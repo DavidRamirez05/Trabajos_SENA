@@ -96,14 +96,13 @@ const registrar = async (req, res) => {
                 }   
             });
         } catch (error) {
-                console.error('Error en registrar: ', error);{
+                console.error('Error en registrar: ', error);
                     return res.status(400).json({
                         success: false,
                         message: 'Error al registrar usuario',
                         errors: error.errors.map(e => e.message)
                     });
                 }
-            }
         };
 
 /** 
@@ -114,7 +113,7 @@ const registrar = async (req, res) => {
  * body: {email, password}
  */
 
-const login = async (req, res) => {
+const login = async (req, res) => { 
     try {
         // Extraer credenciales del body
         const { email, password } = req.body;
@@ -177,8 +176,17 @@ const login = async (req, res) => {
             data: {
                 usuario: usuarioSinPassword,
                 token
-            }
+            },
         });
+    } catch (error) {
+        console.error('Error en login: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error en login',
+            error: error.message
+        });
+    }
+};
 
 /**
  * Obtener perfil del usuario autenticado
@@ -262,74 +270,73 @@ const updateMe = async (req, res) => {
             message: 'Error al actualizar perfil',
             error: error.message
         });
-    };
-
-    /**
-     * Cambiar la contraseña del usuario autenticado
-     * Permite al usuario cambiar su contraseña
-     * Require su contraseña actual por seguridad
-     * Put /api/auth/me/password
-     */
-        const changePassword = async (req, res) => {
-            try {
-                const { passwordActual, passwordNueva } = req.body;
-
-                // Validacion 1: Verificar que se proporcionan ambas contraseñas
-                if (!passwordActual || !passwordNueva) {
-                    return res.status(400).json({ 
-                        success: false,
-                        message: 'Se requiere password actual y nueva'
-                    });
-                }
-
-                // Validacion 2: Verificar que se proporcionan ambas contraseñas
-                if (passwordNueva.length < 6) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'La contraseña actual debe tener al menos 6 caracteres'
-                    });
-                }
-
-                // Validacion 3: Buscar usuario con password incluido
-                const usuario = await Usuario.scope('withPassword').findByPk(req.usuario.id);
-                if (!usuario) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Usuario no encontrado'
-                    })
-                }
-
-                // Validacion 4: Verificar que la contraseña actual es correcta
-                const passwordValida = await usuario.compararPassword(passwordActual);
-                if (!passwordValida) {
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Contraseña actual incorrecta'
-                    });
-                }
-
-                // Actualizar contraseña
-                usuario.password = passwordNueva;
-                await usuario.save();
-
-
-                // Respuesta exitosa
-                res.json({
-                    success: true,
-                    message: 'Contraseña actualizada correctamente'
-                });
-
-        } catch (error) {
-            console.error('Error en changePassword: ', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error al cambiar contraseña',
-                error: error.message
-            });
-        }
     }
 };
-    
+
+/**
+ * Cambiar la contraseña del usuario autenticado
+ * Permite al usuario cambiar su contraseña
+ * Require su contraseña actual por seguridad
+ * Put /api/auth/me/password
+ */
+const changePassword = async (req, res) => {
+    try {
+        const { passwordActual, passwordNueva } = req.body;
+
+        // Validacion 1: Verificar que se proporcionan ambas contraseñas
+        if (!passwordActual || !passwordNueva) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Se requiere password actual y nueva'
+            });
+        }
+
+        // Validacion 2: Verificar que se proporcionan ambas contraseñas
+        if (passwordNueva.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'La contraseña actual debe tener al menos 6 caracteres'
+            });
+        }
+
+        // Validacion 3: Buscar usuario con password incluido
+        const usuario = await Usuario.scope('withPassword').findByPk(req.usuario.id);
+        if (!usuario) {
+            return res.status(400).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            })
+        }
+
+        // Validacion 4: Verificar que la contraseña actual es correcta
+        const passwordValida = await usuario.compararPassword(passwordActual);
+        if (!passwordValida) {
+            return res.status(401).json({
+                success: false,
+                message: 'Contraseña actual incorrecta'
+            });
+        }
+
+        // Actualizar contraseña
+        usuario.password = passwordNueva;
+        await usuario.save();
+
+        // Respuesta exitosa
+        res.json({
+            success: true,
+            message: 'Contraseña actualizada correctamente'
+        });
+
+    } catch (error) {
+        console.error('Error en changePassword: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al cambiar contraseña',
+            error: error.message
+        });
+    }
+};
+
 //Exportar todos los controladores
 module.exports = {
     registrar,
