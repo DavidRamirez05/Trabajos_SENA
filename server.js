@@ -26,6 +26,8 @@ const { initAssociations } = require('./models');
 
 //Importar seeders
 const { runSeeders } = require('./seeders/adminSeeder');
+const { version } = require('os');
+const { time } = require('console');
 
 // Crear aplicacion express
 const app = express();
@@ -71,4 +73,17 @@ if (process.env.NODE_ENV === 'development') {
         console.log(`ok ${req.method} ${req.path}`);
         next();
     });
-}          
+}
+
+// RUTAS
+
+// Importar raiz verificar el servidor esta corriendo
+
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Servidor E-commerce Backend corriendo correctamente',
+        version: '1.0.0',
+        time: new Date().toISOString()
+    });
+});
