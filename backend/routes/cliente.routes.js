@@ -15,8 +15,6 @@ const catalogoController = require('../controllers/catalogo.controller');
 const carritoController = require('../controllers/carrito.controller');
 const pedidoController = require('../controllers/pedido.controller');
 
-
-//********************************************************************************************
 // CATALOGO */
 
 //rutas de publicas catalogo
@@ -35,8 +33,6 @@ router.get('/catalogo/categorias/:id/subcategorias', catalogoController.getSubca
 //get /api/catalogo/destacados
 router.get('/catalogo/destacados', catalogoController.getProductosDestacados);
 
-
-//***********************************************************************************************
 // CARRITO */
 
 //Rutas del carrito
@@ -56,9 +52,6 @@ router.delete('/cliente/carrito/:id', verificarAuth, carritoController.eliminarI
 //vaciar carrito
 router.delete('/cliente/carrito/:id', verificarAuth, carritoController.vaciarCarrito);
 
-
-
-//***********************************************************************************************
 // PEDIDO-CLIENTE */
 
 //rutas de p-cliente
