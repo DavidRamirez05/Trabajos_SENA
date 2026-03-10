@@ -22,8 +22,6 @@ const pedidoController = require('../controllers/pedido.controller');
 // restricciones de acceso a las rutas del admin
 router.use(verificarAuth, esAdminOAuxiliar);
 
-
-//********************************************************************************************
 // CATEGORIAS */
 
 //rutas de categorias
@@ -48,9 +46,6 @@ router.patch('/categorias/:id/toggle', categoriaController.toggleCategoria);
 //delete /api/admin/categorias
 router.post('/categorias/:id', soloAdministrador, categoriaController.eliminarCategoria);
 
-
-
-//***********************************************************************************************
 // SUBCATEGORIAS */
 
 //rutas de subcategorias
@@ -75,9 +70,6 @@ router.patch('/subcategorias/:id/toggle', subcategoriaController.toggleSubcatego
 //delete /api/admin/subcategorias
 router.post('/subcategorias/:id', soloAdministrador, subcategoriaController.eliminarSubcategoria);
 
-
-
-//***********************************************************************************************
 // PRODUCTOS */
 
 //rutas de productos
@@ -99,9 +91,6 @@ router.patch('/productos/:id/toggle', productoController.toggleproducto);
 //delete /api/admin/productos
 router.post('/productos/:id', soloAdministrador, productoController.eliminarProducto);
 
-
-
-//*****************************************************************************************************
 // USUARIOS */
 
 //rutas de usuarios
@@ -126,9 +115,6 @@ router.patch('/usuarios/:id/toggle', soloAdministrador, usuarioController.toggle
 //delete /api/admin/usuarios
 router.post('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
 
-
-
-//******************************************************************************************************
 // PEDIDOS */
 
 //rutas de pedidos
