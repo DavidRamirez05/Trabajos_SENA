@@ -21,10 +21,9 @@ const pedidoController = require('../controllers/pedido.controller');
 
 // restricciones de acceso a las rutas del admin
 router.use(verificarAuth, esAdminOAuxiliar);
-//********************************************************************************************
-// CATEGORIAS */
 
-//rutas de categorias
+// CATEGORIAS
+// Rutas de categorias
 //get /api/admin/categorias
 router.get('/categorias', categoriaController.getCategorias);
 
@@ -46,10 +45,8 @@ router.patch('/categorias/:id/toggle', categoriaController.toggleCategoria);
 //delete /api/admin/categorias
 router.post('/categorias/:id', soloAdministrador, categoriaController.eliminarCategoria);
 
-//***********************************************************************************************
 // SUBCATEGORIAS */
-
-//rutas de subcategorias
+//Rutas de subcategorias
 //get /api/admin/subcategorias
 router.get('/subcategorias', subcategoriaController.getSubcategorias);
 
@@ -71,10 +68,8 @@ router.patch('/subcategorias/:id/toggle', subcategoriaController.toggleSubcatego
 //delete /api/admin/subcategorias
 router.post('/subcategorias/:id', soloAdministrador, subcategoriaController.eliminarSubcategoria);
 
-//***********************************************************************************************
 // PRODUCTOS */
-
-//rutas de productos
+// Rutas de productos
 //get /api/admin/productos
 router.get('/productos', productoController.getProductos);
 
@@ -93,10 +88,8 @@ router.patch('/productos/:id/toggle', productoController.toggleproducto);
 //delete /api/admin/productos
 router.post('/productos/:id', soloAdministrador, productoController.eliminarProducto);
 
-//*****************************************************************************************************
 // USUARIOS */
-
-//rutas de usuarios
+//Rutas de usuarios
 //get /api/admin/usuarios
 router.get('/usuarios', usuarioController.getUsuarios);
 
@@ -118,10 +111,8 @@ router.patch('/usuarios/:id/toggle', usuarioController.toggleUsuario);
 //delete /api/admin/usuarios
 router.post('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
 
-//******************************************************************************************************
 // PEDIDOS */
-
-//rutas de pedidos
+//Rutas de pedidos
 //get /api/admin/subcategorias
 router.get('/subcategorias', subcategoriaController.getSubcategorias);
 
