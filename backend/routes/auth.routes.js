@@ -9,7 +9,7 @@ const router = express.Router();
 
 // Importar controladores de autenticacion
 const {
-    register, 
+    registrar, 
     login,
     getMe,
     updateMe,
