@@ -38,7 +38,37 @@ const PORT = process.env.PORT || 3000;
 // Cors para permitir peticiones desde el frontend
 // Configurar que los dominios pueden hacer peticiones al backend
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Permitir solo el dominio del frontend
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // Métodos permitidos
-    allowedHeaders: ['Content-Type', 'Authorization'] // Encabezados permitidos
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', ///url del frontend
+    credentials: true, // permitir enviar cookies 
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],  // Métodos permitidos
+    allowedHeaders: ['Content-Type', 'Authorization']  // Encabezados permitidos
 }));
+
+/**
+ * express.json() parsear el body de las peticiones en fomaro JSON
+ */
+
+app.use(express.json());
+
+/**
+ * express.urlencoded() - parse el body de los formularios
+ * las imagenes estaran disponibles
+ */
+
+app.use(express.urlencoded({extended: true}));
+
+/**
+ * servir archivos estaticos iamgenes desdde la capeta raiz
+ */
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Midleware para logging de las peticiones
+// Muestra en consola cada peticion que llega el servidor
+
+if (process.env.NODE_ENV === 'development') {
+    app.use((req, res, next) => {
+        console.log(`ok ${req.method} ${req.path}`);
+        next();
+    });
+}          
