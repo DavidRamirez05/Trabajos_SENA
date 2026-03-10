@@ -1,5 +1,5 @@
 /** Rutas del administrador
- * agrupa todas las urutas de gestion del admin
+ * Agrupa todas las urutas de gestion del admin
  */
 
 const express =  require('express');
@@ -12,7 +12,7 @@ const { esAdministrador, esAdminOAuxiliar, soloAdministrador } = require('../mid
 //Importar configuracion de multer para la subida de imagenes
 const { upload } = require('../config/multer');
 
-//importar controladores
+//Importar controladores
 const categoriaController = require('../controllers/categoria.controller');
 const subcategoriaController = require('../controllers/subcategoria.controller');
 const productoController = require('../controllers/producto.controller');
@@ -45,7 +45,7 @@ router.patch('/categorias/:id/toggle', categoriaController.toggleCategoria);
 //delete /api/admin/categorias
 router.post('/categorias/:id', soloAdministrador, categoriaController.eliminarCategoria);
 
-// SUBCATEGORIAS */
+// SUBCATEGORIAS
 //Rutas de subcategorias
 //get /api/admin/subcategorias
 router.get('/subcategorias', subcategoriaController.getSubcategorias);
@@ -68,7 +68,7 @@ router.patch('/subcategorias/:id/toggle', subcategoriaController.toggleSubcatego
 //delete /api/admin/subcategorias
 router.post('/subcategorias/:id', soloAdministrador, subcategoriaController.eliminarSubcategoria);
 
-// PRODUCTOS */
+// PRODUCTOS
 // Rutas de productos
 //get /api/admin/productos
 router.get('/productos', productoController.getProductos);
@@ -88,7 +88,7 @@ router.patch('/productos/:id/toggle', productoController.toggleproducto);
 //delete /api/admin/productos
 router.post('/productos/:id', soloAdministrador, productoController.eliminarProducto);
 
-// USUARIOS */
+// USUARIOS
 //Rutas de usuarios
 //get /api/admin/usuarios
 router.get('/usuarios', usuarioController.getUsuarios);
@@ -111,7 +111,7 @@ router.patch('/usuarios/:id/toggle', usuarioController.toggleUsuario);
 //delete /api/admin/usuarios
 router.post('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
 
-// PEDIDOS */
+// PEDIDOS
 //Rutas de pedidos
 //get /api/admin/subcategorias
 router.get('/subcategorias', subcategoriaController.getSubcategorias);
