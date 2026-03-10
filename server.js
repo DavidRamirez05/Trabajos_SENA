@@ -102,5 +102,23 @@ app.get('/', (req, res) => {
 // Rutas de autenticacion
 // Incluye registro login, perfil
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
+
+// Rutas de administrador
+// Requieren autenticacion y rol de administrador
+const adminRoutes = require('./routes/admin.routes');
+app.use('/api/admin', adminRoutes);
+
+// Rutas de cliente
+const clienteRoutes = require('./routes/cliente.routes');
+app.use('/api/cliente', clienteRoutes);
+
+// Manejo de rutas no encontradas (404)
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Ruta no encontrada',
+        path: req.path,
+    });
+});
