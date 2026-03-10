@@ -15,8 +15,7 @@ const catalogoController = require('../controllers/catalogo.controller');
 const carritoController = require('../controllers/carrito.controller');
 const pedidoController = require('../controllers/pedido.controller');
 
-// CATALOGO */
-
+// CATALOGO
 //rutas de publicas catalogo
 //get /api/admin/catalogo/productos
 router.get('/catalogo/productos', catalogoController.getProductos);
@@ -33,8 +32,7 @@ router.get('/catalogo/categorias/:id/subcategorias', catalogoController.getSubca
 //get /api/catalogo/destacados
 router.get('/catalogo/destacados', catalogoController.getProductosDestacados);
 
-// CARRITO */
-
+// CARRITO
 //Rutas del carrito
 // get /api/cliente/carrito
 router.get('/cliente/carrito', carritoController.getCarrito);
@@ -52,8 +50,7 @@ router.delete('/cliente/carrito/:id', verificarAuth, carritoController.eliminarI
 //vaciar carrito
 router.delete('/cliente/carrito/:id', verificarAuth, carritoController.vaciarCarrito);
 
-// PEDIDO-CLIENTE */
-
+// PEDIDO-CLIENTE 
 //rutas de p-cliente
 //POST /api/admin/productos
 router.post('/cliente/pedidos', verificarAuth, pedidoController.crearPedido);
