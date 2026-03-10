@@ -20,7 +20,7 @@ const { generarToken } = require('../config/jwt');
  * @param {Object} res responde Express
  */
 
-const register = async (req, res) => {
+const registrar = async (req, res) => {
     try {
         const { nombre, apellido, email, password, telefono, direccion } = req.body;
 
