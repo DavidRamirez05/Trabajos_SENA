@@ -122,3 +122,89 @@ app.use((req, res) => {
         path: req.path,
     });
 });
+
+// Manejo de errores globales
+app.use((err, req, res, next) => {
+    console.error('Error:', err.message);
+    // Manejo de errores globales
+    
+    app.use((err, req, res, next) => {
+        console.error('Error:', err.message);
+        // Error de multer subida de archivos
+        if(err.name === 'MulterError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Error al subir el archivo',
+                error: err.message
+            });
+        }
+    });
+
+    // Otros errores
+    res.status(500).json({
+        success: false,
+        message: err.message || 'Error interno del servidor',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
+});
+
+// Inicializar el servidor y base de datos
+
+/**
+ * Funcion principal para iniciar el servidor 
+ * Prueba la conexion a MySQL
+ * Sincroniza los modelos (Crea las tablas)
+ * Inicia el servidor express 
+ */
+const startServer = async () => {
+    try {
+        // Paso 1: Probar conexion a MySQL
+        console.log(' Conectado a MySQL...');
+        const dbConnected = await dbConfig.testConnection();
+
+        if(!dbConnected) {
+            console.error('No se pudo conectar a la base de datos. Verifica tu configuración.');
+            process.exit(1); // Salir si no hay conexion
+        }
+
+        // Paso 2: Sincronizar modelos (Crear tablas)
+        console.log('Sincronizando modelos con la base de datos...');
+
+        //Inicializar asociaciones entre modelos
+        initAssociations();
+
+        // En desarrollo alter puede ser true para actualizar la estructura
+        // En produccion debe ser false para no perder datos
+        const alterTables = process.env.NODE_ENV === 'development';
+        const dbSynced = await synDatabase(false, alterTables);
+
+        if (!dbSynced) {
+            console.error('X Error al sincronizar la base de datos');
+            process.exit(1);
+        }
+
+        // Paso 3: Ejecutar seeders datos iniciales
+        await runSeeders();
+
+        // Paso 4: Iniciar servidor express
+        app.listen(PORT, () => {
+            console.log(`\n ____________________`);
+            console.log(`Servidor corriendo en el puerto ${PORT}`);
+            console.log(`URL: http://localhost:${PORT}`);
+            console.log(`Base de datos ${process.env.DB_NAME}`);
+            console.log(`Modo: ${process.env.NODE_ENV}`);
+            console.log(`Servidor listo para realizar peticiones...`);
+        });
+    } catch (error) {
+        console.error('X Error al iniciar el servidor:', error.message);
+        process.exit(1);
+    }
+};
+
+// Manejo de cierre
+// Captura el ctrl+c para cerrar el servidor correctamente
+
+process.on('SIGINT', () => {
+    console.log('\nServidor cerrado por el usuario');
+    process.exit(0);
+});
