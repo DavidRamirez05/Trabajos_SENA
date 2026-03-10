@@ -205,6 +205,18 @@ const startServer = async () => {
 // Captura el ctrl+c para cerrar el servidor correctamente
 
 process.on('SIGINT', () => {
-    console.log('\nServidor cerrado por el usuario');
+    console.log('\n\n Cerrando servidor...');
     process.exit(0);
 });
+
+// Capturar errores no menjados
+process.on('unhandledRejection', (err) => {
+    console.error('X error no manejado', err);
+    process.exit(1);
+});
+
+// Iniciar el servidor
+startServer();
+
+//Exportar app para testing
+module.exports = app;
