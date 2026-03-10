@@ -77,8 +77,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // RUTAS
 
-// Importar raiz verificar el servidor esta corriendo
-
+// Rutas raiz verificar el servidor esta corriendo
 app.get('/', (req, res) => {
     res.json({
         success: true,
@@ -87,3 +86,21 @@ app.get('/', (req, res) => {
         time: new Date().toISOString()
     });
 });
+
+// Rutas de salud  para verificar que el servidor como esta
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'healthy',
+        version: 'connected',
+        time: new Date().toISOString()
+    });
+});
+
+//Rutas api
+
+// Rutas de autenticacion
+// Incluye registro login, perfil
+
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
