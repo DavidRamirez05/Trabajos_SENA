@@ -12,7 +12,6 @@ const Producto = require('../models/Producto');
 const Usuario = require('../models/Usuario');
 const Categoria = require('../models/Categoria');
 const Subcategoria = require('../models/Subcategoria');
-const e = require('cors');
 
 /**
  * Crear pedido desde el carrito (Checkout)
@@ -27,8 +26,8 @@ const crearPedido = async (req, res) => {
         const { direccionEnvio, telefono, metodoPago = 'efectivo', notasAdicionales } = req.body;
 
         //Dirrecion requerida 
-        if (!direccionEnvio || direccionEnvio.trim() === '') {
-            await t.rollback();
+        if (!direccionEnvio || direccionEnvio.trim() === '') { //trim elimina espacios en blanco al inicio y al final
+            await t.rollback(); // Rollback de la transaccion antes de ejecutarla osea cancela la transaccion
             return res.status(400).json({ 
                 succes: false,
                 message: 'La dirección de envío es requerida' 
@@ -56,13 +55,13 @@ const crearPedido = async (req, res) => {
 
         //Obtner items del carrito
 
-        const carritoItems = await Carrito.findAll({
+        const itemsCarrito = await Carrito.findAll({
             where: { usuarioId: req.usuario.id },
-            include: {
+            include: [{
                 model: Producto,
                 as: 'producto',
                 attributes: ['id', 'nombre', 'precio', 'stock', 'activo']
-            },
+            }],
             transaction: t
         });
 
@@ -76,7 +75,7 @@ const crearPedido = async (req, res) => {
 
         //Verificar stock y productos activos
         const erroresValidacion = [];
-        let totalPedido = 0;
+        let totalPedido = 0; 
 
         for (const item of itemsCarrito) {
             const producto = item.producto;
@@ -109,7 +108,7 @@ const crearPedido = async (req, res) => {
 
         //Crear pedido
         const Pedido = await Pedido.create({
-            usuarioId: req.user.usuarioid,
+            usuarioId: req.usuario.id,
             total: totalPedido,
             estado: 'pendiente',
             direccionEnvio,
@@ -119,7 +118,7 @@ const crearPedido = async (req, res) => {
         }, { transaction: t });
 
         //Crear detalles del pedido y actualizar stock
-        const  detallePedidos = [];
+        const  detallesPedido = [];
 
         for (const item of itemsCarrito) {
             const producto = item.producto;
