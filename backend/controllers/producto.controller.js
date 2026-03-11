@@ -9,11 +9,11 @@
  */
 const Producto = require('../models/Producto');
 const Categoria = require('../models/Categoria');
-const subcategoria = require('../models/subcategoria');
+const Subcategoria = require('../models/Subcategoria');
 
 //Importar path  y fs paramanejo de imagenes
-const path = require('path');
-const fs = require('fs');
+const path = require('path'); //Trabaja con rutas de archivos
+const fs = require('fs'); 
 
 /**
  * Obtener todos los productos 
@@ -25,10 +25,10 @@ const fs = require('fs');
  * @param {Object} res responde Express
  */
 
-const getProductos = async (req, res) => {
+const getProductos = async (req, res) => { 
     try {
         const { 
-            categoriaId, 
+            categoriaId,
             subcategoriaId,
             activo,
             conStock,
@@ -43,6 +43,16 @@ const getProductos = async (req, res) => {
         if (subcategoriaId) where.subcategoriaId = subcategoriaId;
         if (activo !== undefined) where.activo = activo === 'true';
         if (conStock === 'true') where.stock = { [require ('sequelize').Op.gt]: 0 };
+
+        if (buscar) {
+          const { Op } = require('sequelize');
+          // Op.or busca por nombre o descripcion
+          // Op.like equivale a un like en SQL con comidines para buscar coincidencias parciales
+          where[Op.or] = [
+            { nombre: { [Op.like]: `%${buscar}%` } }, //Lo que hace es buscar coincidencias parciales en el nombre del producto
+            { descripcion: { [Op.like]: `%${buscar}%` } }, //Busca coincidencias parciales en la descripcion
+          ];
+        }
 
         //Paginacion
         const offset = (parseInt(pagina) - 1) * parseInt(limite);
@@ -64,7 +74,7 @@ const getProductos = async (req, res) => {
             ],
             limit: parseInt(limite),
             offset,
-            order: [['createdAt', 'ASC']]
+            order: [['nombre', 'ASC']]
         };
 
         // Obtener productos y total
@@ -89,7 +99,7 @@ const getProductos = async (req, res) => {
             success: false,
             message: 'Error al obtener productos',
             error: error.message
-        })
+        });
     }
 };
 
@@ -106,7 +116,7 @@ const getProductosById = async (req, res) => {
         const { id } = req.params;
 
         //Buscar productos con relacion 
-        const producto = await Producto.findByPk(id, {
+        const producto = await Producto.findByPk(id, {  // FindByPk busca por clave primaria, en este caso el id del producto
         include: [{
                 model: Categoria,
                 as: 'categoria',
@@ -159,7 +169,7 @@ const crearProducto = async (req, res) => {
         const {nombre, descripcion, precio, stock, categoriaId, subcategoriaId} = req.body;
 
             //validacion 1 - verificar campos requiridos
-            if (!nombre || !precio || !stock || !categoriaId || !subcategoriaId) {
+            if (!nombre || !precio || !categoriaId || !subcategoriaId) {
                 return res.status(400).json({
                     success: false,
                     message: 'El nombre del producto, precio, stock, categoriaId y subcategoriaId son requeridos' 
@@ -195,12 +205,12 @@ const crearProducto = async (req, res) => {
             });
         */
 
-        //Validacion 2 - verificar que la categoria ESTE ACTIVA
+        //Validacion 2 - verificar que la categoria esta activa
         const categoria = await Categoria.findByPk(categoriaId);
         if (!categoria) {
             return res.status(400).json({
                 success: false,
-                message: `No existe la categoria con ID "${categoriaId}" o esta inactiva`
+                message: `No existe la categoria con ID "${categoriaId}"`
             });
         }
 
@@ -234,15 +244,15 @@ const crearProducto = async (req, res) => {
                 message: `La subcategoria "${subcategoriaId.nombre}" no pertenece a la categoria con ID "${categoriaId}"`
             });
         }
-        // Validar el precio y Stock
-        if (isNaN(precio) || parseFloat(precio) < 0) {
+        // Validar 4 - El precio y Stock
+        if (parseFloat(precio) < 0) {
             return res.status(400).json({
                 success: false,
-                message: 'El precio debe ser un numero positivo'
+                message: 'El precio debe ser mayor a 0'
             });
         }
 
-        if (isNaN(stock) || parseInt(stock) < 0) {
+        if (parseInt(stock) < 0) {
             return res.status(400).json({
                 success: false,
                 message: 'El stock debe ser un numero positivo'
@@ -286,7 +296,7 @@ const crearProducto = async (req, res) => {
     
     //si hubo un error eliminar la imagen subida
     if (req.file) {
-      const rutaImagen = path.join(__dirname, '../uploads', req.file.filename);
+      const rutaImagen = path.join(__dirname, '../uploads', req.file.filename); 
       try {
         await fs.unlink(rutaImagen);
       } catch (err) {
@@ -332,7 +342,6 @@ const actualizarProducto = async (req, res) => {
       });
     }
 
-
     // Validacion si se cambia la categoria y subcategoria 
     if (categoriaId && categoriaId !== producto.categoriaId) {
       const categoria = await Categoria.findByPk(categoriaId);
@@ -367,22 +376,18 @@ const actualizarProducto = async (req, res) => {
   
       // Validar el precio y Stock
       if (precio !== undefined && parseFloat(precio) < 0){ 
-        if (isNaN(precio) || parseFloat(precio) < 0) {
           return res.status(400).json({
             success: false,
             message: 'El precio debe ser mayor a 0'
           });
-        }
       }
 
       if (stock !== undefined && parseInt(stock) < 0) {
-        if (isNaN(stock) || parseInt(stock) < 0) {
           return res.status(400).json({
             success: false,
             message: 'El stock debe ser mayor o igual a 0'
           });
         }
-      }
 
     //Manejo de imagen
     if (req.file) {
@@ -395,7 +400,6 @@ const actualizarProducto = async (req, res) => {
           console.error('Error al eliminar imagen anterior: ', err);
         }
       }
-
       producto.imagen = req.file.filename;
     }
 
@@ -509,7 +513,7 @@ const eliminarProducto = async (req, res) => {
     }
 
     // El hook beforeDestroy se encargara de eliminar la imagen del producto
-    await producto.destroy();
+    await producto.destroy(); //Destroy elemina toda la informacion guardada en la base de datos
 
     res.json({
       success: true,
@@ -538,7 +542,7 @@ const eliminarProducto = async (req, res) => {
             const { id } = req.params;
             const { cantidad, operacion } = req.body;
             
-            if (!cantidad || !operacion) {
+            if (!cantidad || !operacion) { 
                 return res.status(400).json({
                     success: false,
                     message: 'Se requiere cantidad y operacion'
@@ -570,7 +574,7 @@ const eliminarProducto = async (req, res) => {
                     break;
                 case 'reducir':
                     nuevoStock = producto.reducirstock (cantidadNum);
-                    if (nuevoStock < 0) {
+                    if (cantidadNum > producto.stock) {
                         return res.status(400).json({
                             success: false,
                             message: `No hay suficiente stock. Stock actual: ${producto.stock}`
