@@ -8,7 +8,7 @@
  */
 
 const Usuario = require('../models/Usuario');
-const { generarToken } = require('../config/jwt');
+const { generateToken } = require('../config/jwt');
 
 /**
  * Obtener todos los usuarios
@@ -45,7 +45,7 @@ const registrar = async (req, res) => {
         if (password.length < 6) {
             return res.status(400).json({
                 success: false,
-                message: 'La contraseña debe tener al menos 6 caracteres'
+                message: 'La contraseña debe tener al menos 6 caracteres' 
             });
         }
 
@@ -78,7 +78,7 @@ const registrar = async (req, res) => {
             });
 
             //Generar token JWT con datos del usuario
-            const token = generarToken({
+            const token = generateToken({
                 id: nuevoUsuario.id,
                 email: nuevoUsuario.email,
                 rol: nuevoUsuario.rol
@@ -159,7 +159,7 @@ const login = async (req, res) => {
         }
 
         // Generar token JWT con datos basicos del usuario
-        const token = generarToken({
+        const token = generateToken({
             id: usuario.id,
             email: usuario.email,
             rol: usuario.rol
@@ -197,7 +197,9 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
     try {
         // El usuario ya esta en req.usuario
-        const usuario = await Usuario.findByPk(req.usuario.id);
+        const usuario = await Usuario.findByPk(req.usuario.id, {
+            attributes: { exclude: ['password'] }
+        });
         
         if (!usuario) {
             return res.status(404).json({
@@ -250,7 +252,6 @@ const updateMe = async (req, res) => {
         if (apellido !== undefined) usuario.apellido = apellido;
         if (telefono !== undefined) usuario.telefono = telefono;
         if (direccion !== undefined) usuario.direccion = direccion;
-        if (rol !== undefined) usuario.rol = rol;
 
         //guardar cambios 
         await usuario.save();
