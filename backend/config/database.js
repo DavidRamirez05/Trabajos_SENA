@@ -2,23 +2,23 @@
 
 //Importar sequelize
 const { Sequelize } = require('sequelize');
-const { combineTableNames } = require('sequelize/lib/utils');
-
+    
 //Importar dotenv para variables de entorno
 require('dotenv').config();
 
-//Crear instancias  de sacualize
-const Sequelize = new Sequelize(
-    process.env.DB_NAME,
-    process.env.DB_USER,
+//Crear instancias de sequelize
+const sequelize = new Sequelize(
+    //Cuando aparece esto es de las variables de entorno:
+    process.env.DB_NAME, 
+    process.env.DB_USER, 
     process.env.DB_PASSWORD,
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: 'mysql',
 
-        //Configurazion de pool de conexiones 
-        //Mantieme ñas cpnexiones abieras para mejorar el rendimiento 
+        //Configuracion de pool de conexiones 
+        //Mantiene las conexiones abiertas para mejorar el rendimiento 
         pool: {
             max: 5,
             min: 0,
@@ -26,25 +26,25 @@ const Sequelize = new Sequelize(
             idle: 10000  
         },
 
-            //Configuracion del logging
-            //Permita ver la consulta de mysql por la consola 
-            logging: process.env.NODE_ENV === 'development' ? console.log : false,
+        //Configuracion del logging
+        //Permite ver las consultas de MYSQL por la consola 
+        logging: process.env.NODE_ENV === 'development' ? console.log : false,
 
             
-            //Zona horaria
-            timezone: '-05:00', //Zona horaria de Colombia
+        //Zona horaria
+        timezone: '-05:00', //Zona horaria de Colombia
 
-            //Opciones adicionales
-            define: {
-                //timestamps: true crea automaticamente los campos createdAt y updatedAt
-                timestramps: true,
+        //Opciones adicionales
+        define: {
+            //timestamps: true crea automaticamente los campos createdAt y updatedAt
+            timestramps: true,
 
-                //Underscored: true una snake_case para nombres de las columnas
-                underscored: false,
+            //Underscored: true una snake_case para nombres de las columnas
+            underscored: false,
 
-                //flazeTableName: true usa el nombre del modelo tal cual para la tabla
-                freezeTableName: true
-            }
+            //flazeTableName: true usa el nombre del modelo tal cual para la tabla
+            freezeTableName: true
+        }
     }
 );
 
@@ -75,14 +75,14 @@ const testConnection = async () => {
 const syncDatabase = async (force = false, alter = false) => {
     try{
         // Sincronizar todos los modelos con la base de datos
-        await sequelize.sync({force,alter});
+        await sequelize.sync({force, alter});
 
         if (force) {
-            console.log("Base de datos sincronizada: todas las tablas recreadas");
+            console.log("Base de datos sincronizada: (todas las tablas recreadas).");
         } else if (alter) {
-        console.log("Base de datos sincronizada (tablas alteradas segun los modelos)");
+        console.log("Base de datos sincronizada (tablas alteradas segun los modelos).");
         } else {
-        console.log("Base de datos sincronizada correctamente");
+        console.log("Base de datos sincronizada correctamente.");
     }
 
         return true;
