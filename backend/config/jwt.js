@@ -1,13 +1,13 @@
 /**
  * CONFIGURACION DE JWT
- * Este archivo contiene funciones para generar y verificar tokens JWT+
+ * Este archivo contiene funciones para generar y verificar tokens JWT
  * Los JWT se usan para autenticar usuarios sin necesidaad de sesiones
  */
 
 //Importar jsonwebtoken para mejorar los tokens
-const jwt = requiere('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
-//Importar detonv para acceder a las variables de entorno
+//Importar dotenv para acceder a las variables de entorno
 require('dotenv').config();
 
 /**
@@ -16,7 +16,7 @@ require('dotenv').config();
  * @returns {string} -  Token JWT generado
  */
 
-const generateToken = (parload) => {
+const generateToken = (payload) => {
     try{
         //jwt.sing() crea y firma un token
         //Parametros:
@@ -39,7 +39,7 @@ const generateToken = (parload) => {
 /**
  * Verificar si un token es valido
  * 
- * @param {String} token - Token JWT a verificar
+ * @param {String} tokenHeader - Header Authorization que contiene el token JWT
  * @returns {Object} - Datos decodificados del token si es valido
  * @throws {Error} - si el token es invalido o ha expirado
  */
@@ -52,8 +52,8 @@ const verifyToken = (token) => {
         //2. Secret: La misma clave secreta usada para firmarlo
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        return decoded;
-    } catch (error){
+        return decoded; //Retorna el token decodificado
+    } catch (error){ 
         //Diferentes tipos de errores
         if (error.name === 'TokenExpiredError'){
             throw new Error('Token Expirado');
@@ -73,16 +73,17 @@ const verifyToken = (token) => {
  * @returns {String|null} -> Token estraido o null si no existe
  */
 
-const extractTokenData = (authHeader) => {
+const extractToken = (authHeader) => {
     // Verifica que el header existe y empieza con "Bearer"
     if (authHeader && authHeader.startsWith('Bearer')){
         //Extraer solo el token (quitar "Bearer")
         return authHeader.substring(7);
     }
+
     return null; //No se encuentra un token valido
 };
 
-//Exportar lasfunciones para usarlas en otros archivos
+//Exportar las funciones para usarlas en otros archivos
 module.exports = {
     generateToken,
     verifyToken,
