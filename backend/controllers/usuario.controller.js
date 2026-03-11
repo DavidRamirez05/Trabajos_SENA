@@ -24,7 +24,7 @@ const getUsuarios = async (req, res) => {
         const { rol , activo, buscar, pagina = 1, limite = 10} = req.query;
 
         //Constrir los filtros 
-        const where = {};
+        const where = {}; 
         if (rol) where.rol = rol;
         if (activo !== undefined) where.activo = activo === 'true';
 
@@ -162,6 +162,7 @@ const crearUsuario = async (req, res) => {
                 rol,
                 telefono: telefono || null,
                 direccion: direccion || null, // si no se proporciona se establece como null
+                activo: true
             });
 
             //Respuesta exitosa
@@ -327,7 +328,7 @@ const eliminarUsuario = async (req, res) => {
                 message: 'No se puede eliminar tu propia cuenta'
             });
         }
-        await usuario.destroy();
+        await usuario.destroy(); //Destruye toda la informacion de la cuenta del usuario
 
         //Respuesta Exitosa
         res.json({
