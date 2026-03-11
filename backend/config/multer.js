@@ -1,4 +1,4 @@
-    /**
+/**
  * Configuracion de subida de archivos
  * 
  * Multer es un middleware para mejorar la subida de archivos
@@ -6,28 +6,28 @@
  */
 
 //Importar multer para manejar archivos
-const multer = requiere('multer');
+const multer = require('multer');
 
 //Importar path para trabajar con rutas de archivos
-const path = requiere('path');
+const path = require('path');
 
 //Importar fs para verificar /Crear directorios
-const fs = requiere('fs');
+const fs = require('fs'); //File System Utilizado para crear carpeta y archivos
 
 //Importar dotenv para variables de entorno
-requiere('dotenv').config();
+require('dotenv').config();
 
 //Obtener la ruta donde se guardan los archivos
-const uploadPath = process.env.UPLOAD_PATH || './uploads';
+const uploadPath = process.env.UPLOAD_PATH || './uploads'; 
 
-//Verificar si la carpeta uploads existe, si no crearla
-if (!fs.existsSync(uploadPath)) {
+//Verificar si la carpeta uploads existe, si no existe la crea automaticamentes
+if (!fs.existsSync(uploadPath)) { 
     fs.mkdirSync(uploadPath, { recursive: true });
     console.log(`Carpeta ${uploadPath} creada`);
 }
 
 /**
- * Configuracion de almacenamiento multer
+ * Configuracion de almacenamiento multer  
  * Define donde y como se guardan los archivos
  */
 
@@ -37,7 +37,7 @@ const storage = multer.diskStrorage({
      * 
      * @param {object} req - Objeto de peticion HTTP
      * @param {Object} file - Archivo que esta subiendo
-     * @param {Funtion} cb - Callback que se llama con(error, destination)
+     * @param {Function} cb - Callback que se llama con(error, destination)
      */
     destination: function (req, file, cb){
         //cb(null,ruta) -> Sin error, ruta = carpeta destino
@@ -50,15 +50,14 @@ const storage = multer.diskStrorage({
      * 
      * @param {object} req - Objeto de peticion HTTP
      * @param {object} file -archivo que se esta subiendo
-     * @param {Funtion} cb - Callback  que se llama con (error, filename)
+     * @param {Function} cb - Callback  que se llama con (error, filename)
      */
     filename: function (req, file, cb) {
         //Generar nombre unico usando timestamp + nombre original
         //Date.now() genera un timestamp unico
         //path.extname() extrae la extension del archivo (.jpg, .png, etc)
-        const uniqueName = Date.now() + '-' + file.
-        originalname;
-        cb(null, uniqueName);
+        const uniqueName = Date.now() + '-' + file.originalname; //Nombre del archivo original
+        cb(null, uniqueName); // Luegigo se guarda con el nombre 
     }
 });
 
@@ -70,9 +69,9 @@ const storage = multer.diskStrorage({
  * @param {object} cb - Callback que se llama con (Error, acceptFile)
  */
 
-const filefiler = (req, file, cb) => {
+const filefilter = (req, file, cb) => {
     //Tipo Mime permitidos para imagenes
-    const allowedMimeTypes = ['image/jpeg', 'image jpg', 'image/png', 'image/gif'];
+    const allowedMimeTypes = ['image/jpeg', 'image jpg', 'image/png', 'image/gif']; //Aqui es donde se importan los tipos de archivos permitidos, en este caso imagenes
 
     //Verificar si el tipo de archivo esta en la lista permitida
 
@@ -81,7 +80,7 @@ const filefiler = (req, file, cb) => {
         cb(null,true);
     } else {
         //cb (error) -> Rechazar archivo
-        cb(new Error('Solo se permite imagenes (JPG, JPEG, PNG, GIF)'), false);
+        cb(new Error('Solo se permite imagenes (JPG, JPEG, PNG, GIF)'), false); //Para indicar que el archivo no es aceptado
     }
 };
 
@@ -91,7 +90,7 @@ const filefiler = (req, file, cb) => {
 
 const upload = multer ({
     storage: storage,
-    filefilter: filefiler,
+    filefilter: filefilter, 
     limits: {
         //Limite de tamaño de archivo en bytes
         //Por defecto 5MB (5 * 1024) 5242880 bytes
@@ -112,14 +111,14 @@ const deletefile = (filename) => {
         //Construir la ruta completadel archivo
         const filePath = path.join(uploadPath, filename);
 
-        //Verificar si el archivo existe
+        //Verificar si el archivo existe 
         if (fs.existsSync(filePath)) {
             //Eleminar el archivo
             fs.unlinkSync(filePath);
-            console.log('Archivo eleminado: ${filename}')
+            console.log(`Archivo eleminado: ${filename}`);
             return true;
         } else {
-            console.log('Archivo no encontrado: ${filename}');
+            console.log(`Archivo no encontrado: ${filename}`);
             return false;
         }
     } catch (error){
