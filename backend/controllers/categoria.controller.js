@@ -9,7 +9,7 @@
  */
 
 const Categoria = require('../models/Categoria');
-const Subcategoria = require('../models/Subcategorias');
+const Subcategoria = require('../models/Subcategoria');
 const Producto = require('../models/Producto');
 
 /**

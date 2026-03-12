@@ -8,7 +8,7 @@
 
 const Usuario = require('./Usuario');
 const Categoria = require('./Categoria');
-const Subcategoria = require('./Subcategorias');
+const Subcategoria = require('./Subcategoria');
 const Producto = require('./Producto');
 const Carrito = require('./Carrito');
 const Pedido = require('./Pedido');

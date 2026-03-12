@@ -27,23 +27,23 @@ router.use(verificarAuth, esAdminOAuxiliar);
 //get /api/admin/categorias
 router.get('/categorias', categoriaController.getCategorias);
 
-//get /api/admin/categoria:id
+//get /api/admin/categorias/:id
 router.get('/categorias/:id', categoriaController.getCategoriasById);
 
 //get /api/admin/categorias/:id/stats
-router.get('/categorias:id/stats', categoriaController.getEstadisticasCategoria);
+router.get('/categorias/:id/stats', categoriaController.getEstadisticasCategoria);
 
 //POST /api/admin/categorias
 router.post('/categorias', categoriaController.crearCategoria);
 
-//PUT /api/admin/categorias
-router.put('/categorias', categoriaController.actualizarCategoria);
+//PUT /api/admin/categorias/:id
+router.put('/categorias/:id', categoriaController.actualizarCategoria);
 
-//patch /api/admin/categorias:id/toggle desactivar o activar categoria
+//patch /api/admin/categorias/:id/toggle desactivar o activar categoria
 router.patch('/categorias/:id/toggle', categoriaController.toggleCategoria);
 
-//delete /api/admin/categorias
-router.post('/categorias/:id', soloAdministrador, categoriaController.eliminarCategoria);
+//DELETE /api/admin/categorias/:id
+router.delete('/categorias/:id', soloAdministrador, categoriaController.eliminarCategoria);
 
 // SUBCATEGORIAS
 //rutas de subcategorias
@@ -54,19 +54,19 @@ router.get('/subcategorias', subcategoriaController.getSubcategorias);
 router.get('/subcategorias/:id', subcategoriaController.getSubcategoriasById);
 
 //get /api/admin/subcategorias/:id/stats
-router.get('/subcategorias:id/stats', subcategoriaController.getEstadisticasSubcategoria);
+router.get('/subcategorias/:id/stats', subcategoriaController.getEstadisticasSubcategoria);
 
 //POST /api/admin/subcategorias
 router.post('/subcategorias', subcategoriaController.crearSubcategoria);
 
-//PUT /api/admin/subcategorias
-router.put('/subcategorias', subcategoriaController.actualizarSubcategoria);
+//PUT /api/admin/subcategorias/:id
+router.put('/subcategorias/:id', subcategoriaController.actualizarSubcategoria);
 
-//patch /api/admin/subcategorias:id/toggle desactivar o activar categoria
+//patch /api/admin/subcategorias/:id/toggle desactivar o activar categoria
 router.patch('/subcategorias/:id/toggle', subcategoriaController.toggleSubcategoria);
 
-//delete /api/admin/subcategorias
-router.post('/subcategorias/:id', soloAdministrador, subcategoriaController.eliminarSubcategoria);
+//DELETE /api/admin/subcategorias/:id
+router.delete('/subcategorias/:id', soloAdministrador, subcategoriaController.eliminarSubcategoria);
 
 // PRODUCTOS 
 //rutas de productos
@@ -74,19 +74,19 @@ router.post('/subcategorias/:id', soloAdministrador, subcategoriaController.elim
 router.get('/productos', productoController.getProductos);
 
 //get /api/admin/productos:id
-router.get('/productos/:id', productoController.getproductoById);
+router.get('/productos/:id', productoController.getProductosById);
 
 //POST /api/admin/productos
 router.post('/productos', productoController.crearProducto);
 
-//PUT /api/admin/productos
-router.put('/productos', productoController.actualizarProducto);
+//PUT /api/admin/productos/:id
+router.put('/productos/:id', productoController.actualizarProducto);
 
-//patch /api/admin/productos:id/toggle desactivar o activar categoria
-router.patch('/productos/:id/toggle', productoController.toggleproducto);
+//patch /api/admin/productos/:id/toggle desactivar o activar categoria
+router.patch('/productos/:id/toggle', productoController.toggleProducto);
 
-//delete /api/admin/productos
-router.post('/productos/:id', soloAdministrador, productoController.eliminarProducto);
+//DELETE /api/admin/productos/:id
+router.delete('/productos/:id', soloAdministrador, productoController.eliminarProducto);
 
 // USUARIOS
 //rutas de usuarios
@@ -97,13 +97,13 @@ router.get('/usuarios', usuarioController.getUsuarios);
 router.get('/usuarios/:id', usuarioController.getUsuarioById);
 
 //get /api/admin/usuarios/:id/stats
-router.get('/usuarios:id/stats', usuarioController.getEstadisticasUsuarios);
+router.get('/usuarios/:id/stats', usuarioController.getEstadisticasUsuarios);
 
 //POST /api/admin/usuarios
 router.post('/usuarios', soloAdministrador, usuarioController.crearUsuario);
 
-//PUT /api/admin/usuarios
-router.put('/usuarios', soloAdministrador, usuarioController.actualizarUsuario);
+//PUT /api/admin/usuarios/:id
+router.put('/usuarios/:id', soloAdministrador, usuarioController.actualizarUsuario);
 
 //patch /api/admin/usuarios:id/toggle desactivar o activar categoria
 router.patch('/usuarios/:id/toggle', soloAdministrador, usuarioController.toggleUsuario);
