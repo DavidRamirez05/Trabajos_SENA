@@ -71,11 +71,11 @@ const storage = multer.diskStorage({
 
 const filefilter = (req, file, cb) => {
     //Tipo Mime permitidos para imagenes
-    const allowedMimeTypes = ['image/jpeg', 'image jpg', 'image/png', 'image/gif']; //Aqui es donde se importan los tipos de archivos permitidos, en este caso imagenes
+    const allowedMimeTypes = ['image/jpeg', 'image/jpeg', 'image/png', 'image/gif']; //Aqui es donde se importan los tipos de archivos permitidos, en este caso imagenes
 
     //Verificar si el tipo de archivo esta en la lista permitida
 
-    if( allowedMimeTypes.includes(file.mine)) {
+    if( allowedMimeTypes.includes(file.mimetype)) {
         //cb (null, true) -> Aceptar el archivo
         cb(null,true);
     } else {
@@ -90,7 +90,7 @@ const filefilter = (req, file, cb) => {
 
 const upload = multer ({
     storage: storage,
-    filefilter: filefilter, 
+    fileFilter: filefilter, 
     limits: {
         //Limite de tamaño de archivo en bytes
         //Por defecto 5MB (5 * 1024) 5242880 bytes

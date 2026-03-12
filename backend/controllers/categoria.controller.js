@@ -9,7 +9,7 @@
  */
 
 const Categoria = require('../models/Categoria');
-const Subcategoria = require('../models/Subcategoria');
+const Subcategoria = require('../models/Subcategorias');
 const Producto = require('../models/Producto');
 
 /**
@@ -133,7 +133,7 @@ const getCategoriasById = async (req, res) => {
  * @param {Object} res response Express
  */
 
-const crearCategoria = async (res, res) => {
+const crearCategoria = async (req, res) => {
     try {
         const {nombre, descripcion} = req.body;
 
