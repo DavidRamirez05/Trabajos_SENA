@@ -11,8 +11,6 @@
 
  //Importar instancia de sequelize
  const { sequelize } = require('../config/database');
-const { before } = require('node:test');
-const Categoria = require('./Categoria');
 
  /**
   * Definir el modelo de Producto
@@ -95,6 +93,7 @@ const Categoria = require('./Categoria');
             }
         }
     },
+
  /**
      * categoriaId - ID de la categoria a la que pertenece (FOREIGN KEY)
      * Esta es la relacion con la tabla categoria
@@ -103,8 +102,8 @@ const Categoria = require('./Categoria');
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'subcategorias', // nombre de la tabla relacionada
-            key: 'id'// campo de la tabla relacionada
+            model: 'subcategorias', // Nombre de la tabla relacionada
+            key: 'id'// Campo de la tabla relacionada
         },
         onUpdate: 'CASCADE', // Si se actualiza el id, actualizar aca tambien
         onDelete: 'CASCADE', // si se elimina la categoria eliminar las subcategorias 
@@ -144,6 +143,7 @@ const Categoria = require('./Categoria');
         allowNull: false,
         defaultValue: true
     }
+
  }, {
     //Opciones del modelo 
 
@@ -184,7 +184,8 @@ const Categoria = require('./Categoria');
          */
         beforeCreate: async (producto) => {
             const Categoria = require('./Categoria');
-            const Categoria = require('./Subcategoria');
+            const Subcategoria = require('./Subcategoria');
+
             //Buscar Subcategoria padre
             const subcategoria = await Subcategoria.findByPk(producto.subcategoriaId);
 
@@ -226,7 +227,7 @@ const Categoria = require('./Categoria');
                 const eleminado = await deleteFile (producto.imagen);
 
                 if (eleminado) {
-                    console.log(`Imagen eleminada: $ {producto.imagen}`);
+                    console.log(`Imagen eleminada: ${producto.imagen}`);
                 }
             }
         }
@@ -255,15 +256,15 @@ const Categoria = require('./Categoria');
   * @param {number} cantidad - cantidad deseada
   * @returns {boolean} - true si hay stock disponible, false si no
   */
-Producto.prototype.hayStockDisponible = function(cantidad = 3){
+Producto.prototype.hayStock = function(cantidad = 3){
     return this.stock >= cantidad;
- }
+ };
 
  /**
   * Metodo para reducir el stock
   * Util para despues de una venta
   * @param {number} cantidad - cantidad a reducir
-  * @returns {Promise<boolean>} - true si se redujo el stock, false si no
+  * @returns {Promise<Producto>} - producto actualizado
  */
 Producto.prototype.reducirStock = async function(cantidad) {
     if (!this.hayStock(cantidad)) {
@@ -277,7 +278,7 @@ Producto.prototype.reducirStock = async function(cantidad) {
  * Metodo para aumentar el stock
  * Util para despues de una devolucion
  * @param {number} cantidad - cantidad a aumentar
- * @returns {Promise<boolean>} - producto actualizado
+ * @returns {Promise<Producto>} - producto actualizado
  */
 Producto.prototype.aumentarStock = async function(cantidad) {
     this.stock += cantidad;
