@@ -124,7 +124,7 @@
          * Verifica que esta activo y tenga stock suficiente
          */
         beforeCreate: async (itemCarrito) => {
-            const Producto = requiere('./Producto');
+            const Producto = require('./Producto');
 
             //Buscar producto
             const producto = await Producto.findByPk(itemCarrito.productoId);
@@ -152,7 +152,7 @@
         BeforeUpdate: async (itemCarrito) => {
 
             if (itemCarrito.changed('cantidad')) {
-                const Produco = requiere('./Producto');
+                const Producto = require('./Producto');
                 const producto = await Producto.findByPk(itemCarrito.productoId);
 
                 if (!producto) {
@@ -178,11 +178,11 @@
 
  /**
   * Metodo para actualizar la cantidad de un item del carrito
-  * @param {number} nuevaCantidad - Mueva cantidad
+  * @param {number} nuevaCantidad - Nueva cantidad
   * @returns {Promise} - Item actualizado
   */
     Carrito.prototype.actualizarCantidad = async function(nuevaCantidad) {
-        const Producto = requiere('./Producto');
+        const Producto = require('./Producto');
 
         const producto = await Producto.findByPk(this.productoId);
         
@@ -238,7 +238,7 @@ Carrito.calcularTotalCarrito = async function(usuarioId) {
  * @returns {Promise<number>} - Numero de items eleminados
  */
 Carrito.vaciarCarrito = async function(usuarioId) {
-    return await Carrito.destroy({
+    return await this.destroy({
         where: { usuarioId }
     });
 };
