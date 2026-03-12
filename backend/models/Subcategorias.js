@@ -166,8 +166,8 @@
   * 
   * @returns {Promise<number} - Numero de productos
   */
- Subcategoria.protoype.contarproductos = async function(){
-    const Producto = requiere('./Producto');
+ Subcategoria.prototype.contarProductos = async function(){
+    const Producto = require('./Producto');
     return await Producto.count({ where: {subcategoriaId: this.id}});
 };
 
@@ -175,10 +175,10 @@
  * Metodo para obtener la categoria padre
  * @returns {Promise<Categoria>} - Categoria padre
  */
-subcategoria.prototype.obtenerCategoria = async function(){
+Subcategoria.prototype.obtenerCategoria = async function(){
     const Categoria = require('./Categoria');
     return await Categoria.findByPk(this.categoriaId);
 };
 
  //Exportar modelo Subategoria
- module.exports = subcategoria;     
+ module.exports = Subcategoria;     

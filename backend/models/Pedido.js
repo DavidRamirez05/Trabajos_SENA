@@ -213,7 +213,7 @@
   * @returns {number} - Subtotal (precio * cantidad)
   */
 
-pedido.prototype.cambiarEstado = async function (nuevoEstado) {
+Pedido.prototype.cambiarEstado = async function (nuevoEstado) {
     const estadosValidos = ['pendiente', 'pagado', 'enviado', 'cancelado'];
 
     if (!estadosValidos.includes(nuevoEstado)) {
@@ -239,7 +239,7 @@ Pedido.prototype.puedeCancelar = function () {
  */
 Pedido.prototype.cancelar = async function () {
 
-    if (!this.puedeSerCancelar()) {
+    if (!this.puedeCancelar()) {
         throw new Error('Este pedido no puede ser cancelado');
     }
 
@@ -289,7 +289,7 @@ Pedido.prototype.obtenerDetalle = async function () {
   * @param {number} usuarioId - id del usuario
   * @return {Promise<Array>} - Items del carrito con productos 
   */
- Carrito.obtenerCarritoUsuario = async function (usuarioId) {
+ Pedido.obtenerCarritoUsuario = async function (usuarioId) {
     const Producto = require('./Producto');
 
     return await this.findAll({
@@ -310,7 +310,7 @@ Pedido.prototype.obtenerDetalle = async function () {
   * @returns {Promise<Array>} Pedidos filtrados por estado
   */
     Pedido.obtenerPedidosPorEstado = async function (estado) {
-        const Usuario = requiere ('./Usuario');
+        const Usuario = require ('./Usuario');
         return await this.findAll({
             where: {estado},
             include: [

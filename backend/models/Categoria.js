@@ -120,8 +120,8 @@
   * 
   * @returns {Promise<number} - Numero de sbcategorias
   */
- Categoria.protoype.contarSubcategorias = async function(){
-    const Subcategoria = requiere('./Subcategoria');
+ Categoria.prototype.contarSubcategorias = async function(){
+    const Subcategoria = require('./Subcategoria');
     return await Subcategoria.count({ where: {categoriaId: this.id}});
 };
 
@@ -130,8 +130,8 @@
  *  
  *  @returns {Promise<number} - Numero de sbcategorias
  */
- Categoria.protoype.contarProductos = async function(){
-    const Producto = requiere('./Producto');
+ Categoria.prototype.contarProductos = async function(){
+    const Producto = require('./Producto');
     return await Producto.count({ where: {categoriaId: this.id}});
 };
 

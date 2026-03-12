@@ -100,7 +100,7 @@ app.get('/api/health', (req, res) => {
 // Rutas de autenticacion
 // Incluye registro login, perfil
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
 // Rutas de administrador

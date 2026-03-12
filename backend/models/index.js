@@ -8,7 +8,7 @@
 
 const Usuario = require('./Usuario');
 const Categoria = require('./Categoria');
-const Subcategoria = require('./Subcategoria');
+const Subcategoria = require('./Subcategorias');
 const Producto = require('./Producto');
 const Carrito = require('./Carrito');
 const Pedido = require('./Pedido');
@@ -188,14 +188,14 @@ DetallePedido.belongsTo(Producto, {
  * pedido y producto tiene una relacion de muchos a muchos atravez de detalle pedido
  */
 
-Pedido.hasMany(Producto, {
+Pedido.belongsToMany(Producto, {
     through: DetallePedido, //tabla intermedia
     foreignKey: 'pedidoId', //Campo que conecta las tablas
     otherKey: 'productoId', //Campo que conecta las tablas
     as: 'productos', //Alias para la relacion
 });
 
-Producto.hasMany(Pedido, {
+Producto.belongsToMany(Pedido, {
     through: DetallePedido, //tabla intermedia
     foreignKey: 'productoId', //Campo que conecta las tablas
     otherKey: 'pedidoId', //Campo que conecta las tablas

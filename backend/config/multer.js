@@ -31,7 +31,7 @@ if (!fs.existsSync(uploadPath)) {
  * Define donde y como se guardan los archivos
  */
 
-const storage = multer.diskStrorage({
+const storage = multer.diskStorage({
     /**
      * Destination: Define la carpeta destino donde se guardan el archivo
      * 

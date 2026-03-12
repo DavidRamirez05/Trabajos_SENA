@@ -146,10 +146,10 @@
         },
 
         /**
-         * BeforeUpdate: Se ejecuta antes de actualizar un carrito
+         * beforeUpdate: Se ejecuta antes de actualizar un carrito
          * Valida que haya stock suficiente si se aumenta la cantidad
          */
-        BeforeUpdate: async (itemCarrito) => {
+        beforeUpdate: async (itemCarrito) => {
 
             if (itemCarrito.changed('cantidad')) {
                 const Producto = require('./Producto');
