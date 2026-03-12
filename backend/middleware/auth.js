@@ -13,7 +13,7 @@ const { extractToken} = require('../config/jwt');
 const Usuario = require('../models/Usuario');
 
 // Middleware de autenticacion
-const verificarToken = async (req, res, next) => {
+const verificarAuth = async (req, res, next) => {
     try {
         // Paso 1: Obtener el token del header Authorization
         const authHeader = req.headers.authorization;
@@ -38,7 +38,7 @@ const verificarToken = async (req, res, next) => {
         let decoded; // Funcion para decodificar el token
         try {
             decoded = verifyToken(token);
-        } catch (err) {
+        } catch (error) {
             return res.status(401).json({ 
                 success: false,
                 message: error.message // 'Token de autenticacion invalido'
@@ -46,13 +46,10 @@ const verificarToken = async (req, res, next) => {
         }
 
         // Buscar el usuario en la base de datos 
-        const usuario = await User.findById(decoded.id, {
+        const usuario = await Usuario.findById(decoded.id, {
             attributes: { exclude: ['password'] } // Excluir el campo password
         });
         
-    
-    
-
         if (!usuario) {
             return res.status(404).json({ 
                 success: false,
@@ -133,6 +130,6 @@ const verificarAuthOpcional = async (req, res, next) => {
 
 // Exportar los middlewares
 module.exports = {
-    verificarToken,
+    verificarAuth,
     verificarAuthOpcional
 };
