@@ -25,7 +25,7 @@ const  esAdministrador = (req, res, next) => {
         // el usuario es administrador continuar
         next();
 
-    }  catch  (error) {
+    }  catch (error) {
         console.error('Error en middleware esAdministrador', error);
         return res.status(500).json({
             success: false,
@@ -36,7 +36,7 @@ const  esAdministrador = (req, res, next) => {
 };
 
 /**
- * middleware para verificar si el usuario es cliente
+ * Middleware para verificar si el usuario es cliente
  */
 const  esCliente = (req, res, next) => {
     try {
@@ -59,7 +59,7 @@ const  esCliente = (req, res, next) => {
         // el usuario es administrador continuar
         next();
 
-    }  catch  (error) {
+    }  catch (error) {
         console.error('Error en middleware esCliente', error);
         return res.status(500).json({
             success: false,
@@ -80,7 +80,7 @@ const  esCliente = (req, res, next) => {
             if (!req.usuario) {
                 return res.status(401).json({
                     success: false,
-                    message: 'no autorizado debes iniciar sesion primero'
+                    message: 'No autorizado debes iniciar sesion primero'
                 });
             }
 
@@ -95,7 +95,7 @@ const  esCliente = (req, res, next) => {
             // el usuario tiene un rol permitido continuar
             next();
 
-        }  catch  (error) {
+        }  catch (error) {
             console.error('Error en middleware tieneRol', error);
             return res.status(500).json({
                 success: false,
@@ -113,15 +113,15 @@ const  esCliente = (req, res, next) => {
 
 const  esPropioUsuarioOAdmin = (req, res, next) => {
     try {
-        //verifica que existe req.usuario (viene de la autenticacion)
+        // Verifica que existe req.usuario (viene de la autenticacion)
         if (!req.usuario) {
             return res.status(401).json({
                 success: false,
-                message: 'no autorizado debes iniciar sesion primero'
+                message: 'No autorizado debes iniciar sesion primero'
             });
         }
 
-        //los administradores pueden acceder a datos de cualquier usuario
+        // Los administradores pueden acceder a datos de cualquier usuario
         if (req.usuario.rol === 'administrador') {
             return next();
         }
@@ -129,15 +129,15 @@ const  esPropioUsuarioOAdmin = (req, res, next) => {
         //Obtener el usuarioId de los parametros de la ruta
         const usuarioIdParam = req.params.usuarioId || req.params.id;
 
-        //verificar que el usuarioId concide con el usuario autenticado
+        // Verificar que el usuarioId concide con el usuario autenticado
         if (parseInt(usuarioIdParam) !== req.usuario.id) {
             return res.status(403).json({
                 success: false,
-                message: 'acceso denegadono puedes acceder a datos de otros usuarios'
+                message: 'Acceso denegado no puedes acceder a datos de otros usuarios'
             });
         }
 
-        // el usuario accede a sus propios datos continuar
+        // El usuario accede a sus propios datos continuar
         next();
 
     }  catch  (error) {
@@ -175,7 +175,7 @@ const  esAdminOAuxiliar = (req, res, next) => {
         // el usuario es administrador o auxiliar
         next();
 
-    }  catch  (error) {
+    }  catch (error) {
         console.error('Error en middleware esAdminOAuxiliar', error);
         return res.status(500).json({
             success: false,
