@@ -31,7 +31,7 @@ const { runSeeders } = require('./seeders/adminSeeder');
 const app = express();
 
 // Obtener el puerto desde la variable de entorno
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // MIDDLEWARES GLOBALES
 
@@ -55,7 +55,7 @@ app.use(express.json());
  * las imagenes estaran disponibles
  */
 
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 /**
  * servir archivos estaticos iamgenes desdde la capeta raiz
@@ -86,7 +86,7 @@ app.get('/', (req, res) => {
 });
 
 // Rutas de salud  para verificar que el servidor como esta
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({
         success: true,
         message: 'healthy',
@@ -100,7 +100,7 @@ app.get('/', (req, res) => {
 // Rutas de autenticacion
 // Incluye registro login, perfil
 
-const authRoutes = require('./routes/auth.routes');
+const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
 // Rutas de administrador
