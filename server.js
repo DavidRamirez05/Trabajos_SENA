@@ -26,10 +26,8 @@ const { initAssociations } = require('./models');
 
 //Importar seeders
 const { runSeeders } = require('./seeders/adminSeeder');
-const { version } = require('os');
-const { time } = require('console');
 
-// Crear aplicacion express
+// Crear aplicaciones express
 const app = express();
 
 // Obtener el puerto desde la variable de entorno
