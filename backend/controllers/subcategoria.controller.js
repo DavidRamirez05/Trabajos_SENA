@@ -388,7 +388,7 @@ const actualizarSubcategoria = async (req, res) => {
      */
     const eliminarSubcategoria = async (req, res) => {
         try {
-            const { id } = req.paramas;
+            const { id } = req.params;
 
             //Buscar subcategoria
             const subcategoria = await Subcategoria.findByPk(id);
@@ -446,14 +446,14 @@ const actualizarSubcategoria = async (req, res) => {
         try {
             const { id } = req.params;
 
-            //Veroficar qu la subcategoria exista 
-            const subcategoria = await Subcategoria.findByPk(id [{
+            //Verificar que la subcategoria exista
+            const subcategoria = await Subcategoria.findByPk(id, {
                 include: [{
                     model: Categoria,
                     as: 'categoria',
                     attributes: ['id', 'nombre']
                 }]
-            }]);
+            });
 
             if (!subcategoria) {
                 return res.status(404).json({
