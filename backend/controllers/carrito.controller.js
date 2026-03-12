@@ -19,7 +19,8 @@ const Subcategoria = require('../models/Subcategoria');
 const getCarrito = async (req, res) => {
     try {
         // Obtener items del carrito con los productos relacionados
-        const itemsCarrito = await Carrito.findAll({ where: { usuario: req.usuario._id },
+        const itemsCarrito = await Carrito.findAll({ 
+            where: { usuario: req.usuario._id },
             include: [
                 {
                     model: Producto,
@@ -38,13 +39,14 @@ const getCarrito = async (req, res) => {
                         }
                     ]
                 }
-            ]
+            ],
+            order: [['createdAt', 'DESC']]
         });
 
         //Calcular total del carrito
-        let totalCarrito = 0;
+        let total = 0;
         itemsCarrito.forEach(item => {
-            totalCarrito += parseFloat(item.precioUnitario) * item.cantidad;
+            total += parseFloat(item.precioUnitario) * item.cantidad;
         });
 
         //Respuesta exitosa
@@ -55,7 +57,7 @@ const getCarrito = async (req, res) => {
                 resumen: {
                     totalItems: itemsCarrito.length,
                     CantidadTotal: itemsCarrito.reduce((sum, item) => sum + item.cantidad, 0),
-                    totalCarrito: totalCarrito.toFixed(2)
+                    total: total.toFixed(2)
                 }
             }
         });
@@ -68,15 +70,16 @@ const getCarrito = async (req, res) => {
         })
     }
 };
+
 /**
  * Agregar producto al carrito
  * POST/api/carrito
  * @param {object} req - Resquest de express
  * @param {object} res - Response de express
  */
-const agregarAlCarrito = async (req, res) => {
+const agregarAlCarrito = async (req, res) => { //req hace consulta a la base de datos, res lo responde
     try {
-        const { productoId, cantidad=1 } = req.body;
+        const { productoId, cantidad=1 } = req.body; 
         //Validacion 1: Campos requeridos
         if (!productoId) {
             return res.status(400).json({
@@ -84,13 +87,16 @@ const agregarAlCarrito = async (req, res) => {
                 message: 'El campo productoId es requerido'
             });
         }
+
         //Validacion 2: Cantidad valida
-        if (cantidad <= 0) {
+        const cantidadNum = parseInt(cantidad);
+        if (cantidadNum < 1) {
             return res.status(400).json({
                 success: false,
                 message: 'La cantidad debe ser al menos 1'
             });
         }
+
         //Validacion 3: Producto existe y esta activo
         const producto = await Producto.findByPk(productoId);
 
@@ -108,7 +114,7 @@ const agregarAlCarrito = async (req, res) => {
             });
         }
 
-        //Validacion 4: Verificarr si ya existe en el carrito
+        //Validacion 4: Verificar si ya existe en el carrito
         const itemExistente = await Carrito.findOne({ 
             where: { 
                 usuarioId: req.usuario._id, 
@@ -186,6 +192,7 @@ const agregarAlCarrito = async (req, res) => {
                 item: nuevoItem 
             }
         });
+        
     } catch (error) {
         console.error('Error en agregarAlCarrito:', error);
         res.status(500).json({
@@ -218,7 +225,7 @@ const actualizarItemCarrito = async (req, res) => {
         }
 
         //Buscar el item del carrito
-        const itemCarrito = await Carrito.findOne({
+        const item = await Carrito.findOne({
             where: { 
                 id,
                 usuarioId: req.usuario._id
