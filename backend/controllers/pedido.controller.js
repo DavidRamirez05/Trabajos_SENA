@@ -26,8 +26,8 @@ const crearPedido = async (req, res) => {
         const { direccionEnvio, telefono, metodoPago = 'efectivo', notasAdicionales } = req.body;
 
         //Dirrecion requerida 
-        if (!direccionEnvio || direccionEnvio.trim() === '') { //trim elimina espacios en blanco al inicio y al final
-            await t.rollback(); // Rollback de la transaccion antes de ejecutarla osea cancela la transaccion
+        if (!direccionEnvio || direccionEnvio.trim() === '') {
+            await t.rollback();
             return res.status(400).json({ 
                 succes: false,
                 message: 'La dirección de envío es requerida' 
@@ -106,8 +106,8 @@ const crearPedido = async (req, res) => {
             });
         }
 
-        //Crear pedido
-        const Pedido = await Pedido.create({
+        //Crear pedido ✅ CORREGIDO: era "const Pedido" conflicto con el modelo
+        const pedido = await Pedido.create({
             usuarioId: req.usuario.id,
             total: totalPedido,
             estado: 'pendiente',
@@ -470,12 +470,12 @@ const actualizarEstadoPedido = async (req, res) => {
         const { id } = req.params;
         const { estado } = req.body;
 
-        //Validar estado
+        //Validar estado ✅ CORREGIDO: era estadosValidos.json(',')
         const estadosValidos = ['pendiente', 'enviado', 'entregado', 'cancelado'];
         if (!estadosValidos.includes(estado)) {
             return res.status(400).json({
                 sucess: false,
-                message: `Estado invalido, opciones: ${estadosValidos.json(',')}`
+                message: `Estado invalido, opciones: ${estadosValidos.join(',')}`
             });
         }
 
@@ -513,7 +513,7 @@ const actualizarEstadoPedido = async (req, res) => {
         });
     } catch (error) {
         console.error('Error en actualizarEstadoPedido', error);
-        res.satus(500).json({
+        res.status(500).json({ // ✅ CORREGIDO: era res.satus
             success: false,
             message: 'Error al actulizar el estado del pedido',
             error: error.message
@@ -552,7 +552,7 @@ const getEstadisticasPedidos = async (req, res) => {
 
         const pedidosHoy = await Pedido.count({
             where: {
-                createdAt: { [Op.gte]: hoy } //pedidosultimos 7 dias
+                createdAt: { [Op.gte]: hoy }
             }
         });
 
@@ -566,13 +566,13 @@ const getEstadisticasPedidos = async (req, res) => {
                 pedidosPorEstado: pedidosPorEstado.map(p => ({
                     estado: p.estado,
                     cantidad: parseInt(p.getDataValue('cantidad')),
-                    totalVentas: parseFloat(p.getDataValue('totaolVentas') || 0).toFixed(2)
+                    totalVentas: parseFloat(p.getDataValue('totalVentas') || 0).toFixed(2) // ✅ CORREGIDO: era 'totaolVentas'
                 }))
             }
         });
     } catch (error) {
         console.error('Error en getEstadisticasPedido', error);
-        res.satus(500).json({
+        res.status(500).json({ // ✅ CORREGIDO: era res.satus
             success: false,
             message: 'Error al obtener las estadisticas del pedido',
             error: error.message

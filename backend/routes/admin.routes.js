@@ -109,7 +109,7 @@ router.put('/usuarios/:id', soloAdministrador, usuarioController.actualizarUsuar
 router.patch('/usuarios/:id/toggle', soloAdministrador, usuarioController.toggleUsuario);
 
 //delete /api/admin/usuarios
-router.post('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
+router.delete('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
 
 // PEDIDOS 
 //rutas de pedidos
