@@ -11,6 +11,7 @@ const { esCliente} = require('../middleware/checkRole');
 
 
 //importar controladores
+const catalogoController = require('../controllers/catalogo.controller')
 const carritoController = require('../controllers/carrito.controller');
 const pedidoController = require('../controllers/pedido.controller');
 
