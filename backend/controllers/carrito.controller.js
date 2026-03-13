@@ -20,7 +20,7 @@ const getCarrito = async (req, res) => {
     try {
         // Obtener items del carrito con los productos relacionados
         const itemsCarrito = await Carrito.findAll({ 
-            where: { usuario: req.usuario._id },
+            where: { usuarioId: req.usuario.id },
             include: [
                 {
                     model: Producto,
@@ -117,7 +117,7 @@ const agregarAlCarrito = async (req, res) => { //req hace consulta a la base de 
         //Validacion 4: Verificar si ya existe en el carrito
         const itemExistente = await Carrito.findOne({ 
             where: { 
-                usuarioId: req.usuario._id, 
+                usuarioId: req.usuario.id, 
                 productoId 
             } 
         });
@@ -228,7 +228,7 @@ const actualizarItemCarrito = async (req, res) => {
         const item = await Carrito.findOne({
             where: { 
                 id,
-                usuarioId: req.usuario._id
+                usuarioId: req.usuario.id
             },
             include: [
                 {
@@ -281,7 +281,7 @@ const actualizarItemCarrito = async (req, res) => {
  * Delete /api/carrito/:id
  */
 
-const eleminarItemCarrito = async (req, res) => {
+const eliminarItemCarrito = async (req, res) => {
     try{
         const { id } = req.params;
 
@@ -354,6 +354,6 @@ module.exports = {
     getCarrito,
     agregarAlCarrito,
     actualizarItemCarrito,
-    eleminarItemCarrito,
+    eliminarItemCarrito,
     vaciarCarrito
 };

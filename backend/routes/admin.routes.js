@@ -1,8 +1,8 @@
 /** Rutas del administrador
- * agrupa todas las urutas de gestion del admin
+ * agrupa todas las rutas de gestion del admin
  */
 
-const express =  require('express');
+const express = require('express');
 const router = express.Router();
 
 //Importar los middlewares
@@ -50,7 +50,7 @@ router.delete('/categorias/:id', soloAdministrador, categoriaController.eliminar
 //get /api/admin/subcategorias
 router.get('/subcategorias', subcategoriaController.getSubcategorias);
 
-//get /api/admin/subcategorias:id
+//get /api/admin/subcategorias/:id
 router.get('/subcategorias/:id', subcategoriaController.getSubcategoriasById);
 
 //get /api/admin/subcategorias/:id/stats
@@ -68,12 +68,12 @@ router.patch('/subcategorias/:id/toggle', subcategoriaController.toggleSubcatego
 //DELETE /api/admin/subcategorias/:id
 router.delete('/subcategorias/:id', soloAdministrador, subcategoriaController.eliminarSubcategoria);
 
-// PRODUCTOS 
+// PRODUCTOS
 //rutas de productos
 //get /api/admin/productos
 router.get('/productos', productoController.getProductos);
 
-//get /api/admin/productos:id
+//get /api/admin/productos/:id
 router.get('/productos/:id', productoController.getProductosById);
 
 //POST /api/admin/productos
@@ -82,7 +82,7 @@ router.post('/productos', productoController.crearProducto);
 //PUT /api/admin/productos/:id
 router.put('/productos/:id', productoController.actualizarProducto);
 
-//patch /api/admin/productos/:id/toggle desactivar o activar categoria
+//patch /api/admin/productos/:id/toggle desactivar o activar producto
 router.patch('/productos/:id/toggle', productoController.toggleProducto);
 
 //DELETE /api/admin/productos/:id
@@ -93,7 +93,7 @@ router.delete('/productos/:id', soloAdministrador, productoController.eliminarPr
 //get /api/admin/usuarios
 router.get('/usuarios', usuarioController.getUsuarios);
 
-//get /api/admin/usuarios:id
+//get /api/admin/usuarios/:id
 router.get('/usuarios/:id', usuarioController.getUsuarioById);
 
 //get /api/admin/usuarios/:id/stats
@@ -105,23 +105,25 @@ router.post('/usuarios', soloAdministrador, usuarioController.crearUsuario);
 //PUT /api/admin/usuarios/:id
 router.put('/usuarios/:id', soloAdministrador, usuarioController.actualizarUsuario);
 
-//patch /api/admin/usuarios:id/toggle desactivar o activar categoria
+//patch /api/admin/usuarios/:id/toggle desactivar o activar usuario
 router.patch('/usuarios/:id/toggle', soloAdministrador, usuarioController.toggleUsuario);
 
-//delete /api/admin/usuarios
-router.post('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
+// ✅ CORREGIDO: era router.post, debe ser router.delete
+//DELETE /api/admin/usuarios/:id
+router.delete('/usuarios/:id', soloAdministrador, usuarioController.eliminarUsuario);
 
-// PEDIDOS 
+// PEDIDOS
 //rutas de pedidos
 //get /api/admin/pedidos/estadisticas
 router.get('/pedidos/estadisticas', pedidoController.getEstadisticasPedidos);
 
+//get /api/admin/pedidos
 router.get('/pedidos', pedidoController.getAllPedidos);
 
-//get /api/admin/pedidos:id
+//get /api/admin/pedidos/:id
 router.get('/pedidos/:id', pedidoController.getPedidoById);
 
-//PUT /api/admin/pedidos
+//PUT /api/admin/pedidos/:id/estado
 router.put('/pedidos/:id/estado', pedidoController.actualizarEstadoPedido);
 
 module.exports = router;

@@ -46,11 +46,9 @@ const getProductos = async (req, res) => {
 
         if (buscar) {
           const { Op } = require('sequelize');
-          // Op.or busca por nombre o descripcion
-          // Op.like equivale a un like en SQL con comidines para buscar coincidencias parciales
           where[Op.or] = [
-            { nombre: { [Op.like]: `%${buscar}%` } }, //Lo que hace es buscar coincidencias parciales en el nombre del producto
-            { descripcion: { [Op.like]: `%${buscar}%` } }, //Busca coincidencias parciales en la descripcion
+            { nombre: { [Op.like]: `%${buscar}%` } },
+            { descripcion: { [Op.like]: `%${buscar}%` } },
           ];
         }
 
@@ -77,10 +75,8 @@ const getProductos = async (req, res) => {
             order: [['nombre', 'ASC']]
         };
 
-        // Obtener productos y total
         const { count, rows: productos } = await Producto.findAndCountAll(opciones);
 
-        //Respuesta Exitosa
         res.json({
             success: true,
             count: productos.length,
@@ -115,14 +111,12 @@ const getProductosById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        //Buscar productos con relacion 
-        const producto = await Producto.findByPk(id, {  // FindByPk busca por clave primaria, en este caso el id del producto
+        const producto = await Producto.findByPk(id, {
         include: [{
                 model: Categoria,
                 as: 'categoria',
                 attributes: ['id', 'nombre', 'activo']
             },
-
             {
                 model: Subcategoria,
                 as: 'subcategoria',
@@ -138,12 +132,9 @@ const getProductosById = async (req, res) => {
             });
         }
 
-        //Respuesta Exitosa
         res.json({
             success: true,
-            data: {
-                producto
-            }
+            data: { producto }
         });
 
     } catch (error) {
@@ -168,44 +159,13 @@ const crearProducto = async (req, res) => {
     try {
         const {nombre, descripcion, precio, stock, categoriaId, subcategoriaId} = req.body;
 
-            //validacion 1 - verificar campos requiridos
-            if (!nombre || !precio || !categoriaId || !subcategoriaId) {
+            if (!nombre || !precio || !stock || !categoriaId || !subcategoriaId) {
                 return res.status(400).json({
                     success: false,
                     message: 'El nombre del producto, precio, stock, categoriaId y subcategoriaId son requeridos' 
                 });
             }
 
-            /** 
-            //Validacion 2 - verificar que el nombre no exista
-            const productoExistente = await Producto.findOne({ where: {nombre}
-            });
-
-            if (productoExistente) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Ya exixste un producto con el nombre "${nombre}"`
-                });
-            }
-
-            //Crear categoria
-            const nuevaCategoria = await Categoria.create({
-                nommbre,
-                descripcion: descripcion || null, // si no se proporciona la descripcion se establece como null
-                activo: true
-            });
-
-            //Respuesta exitosa
-            res.status(201).json({
-                success: true,
-                message:'Categoria creada correctamente',
-                data: {
-                    categoria: nuevaCategoria
-                }
-            });
-        */
-
-        //Validacion 2 - verificar que la categoria esta activa
         const categoria = await Categoria.findByPk(categoriaId);
         if (!categoria) {
             return res.status(400).json({
@@ -221,8 +181,7 @@ const crearProducto = async (req, res) => {
             });
         }
 
-        //Validacion 3 - verificar que la subcategoria existe y pertenezca a una categoria
-        const subcategoria = await subcategoria.findByPk(subcategoriaId);
+        const subcategoria = await Subcategoria.findByPk(subcategoriaId);
 
         if (!subcategoria) {
             return res.status(400).json({
@@ -241,10 +200,10 @@ const crearProducto = async (req, res) => {
         if (subcategoria.categoriaId !== parseInt(categoriaId)) {
             return res.status(400).json({
                 success: false,
-                message: `La subcategoria "${subcategoriaId.nombre}" no pertenece a la categoria con ID "${categoriaId}"`
+                message: `La subcategoria "${subcategoria.nombre}" no pertenece a la categoria con ID "${categoriaId}"`
             });
         }
-        // Validar 4 - El precio y Stock
+
         if (parseFloat(precio) < 0) {
             return res.status(400).json({
                 success: false,
@@ -259,22 +218,19 @@ const crearProducto = async (req, res) => {
             });
         }
 
-        //Obtener imagen
         const imagen = req.file ? req.file.filename : null;
 
-    //Crear producto
     const nuevoProducto = await Producto.create({
       nombre,
       descripcion: descripcion || null, 
       precio: parseFloat(precio),
       stock: parseInt(stock),
       categoriaId: parseInt(categoriaId),
-      subcategoria: parseInt(subcategoriaId),
+      subcategoriaId: parseInt(subcategoriaId),
       imagen,
       activo: true
     });
 
-    //Recargar con relaciones
     await nuevoProducto.reload({
       include: [
         { model: Categoria, as: 'categoria', attributes: ['id', 'nombre']},
@@ -282,7 +238,6 @@ const crearProducto = async (req, res) => {
       ]
     });
 
-    //Respuesta exitosa
     res.status(201).json({
       success: true,
       message: "Producto creado exitosamente",
@@ -294,7 +249,6 @@ const crearProducto = async (req, res) => {
   } catch (error) {
     console.error("Error en crearProducto: ", error);
     
-    //si hubo un error eliminar la imagen subida
     if (req.file) {
       const rutaImagen = path.join(__dirname, '../uploads', req.file.filename); 
       try {
@@ -304,11 +258,11 @@ const crearProducto = async (req, res) => {
       }
     }
 
-    if (error.name === 'SequelizateValidationError') {
+    if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
         success: false,
         message: 'Error de validacion',
-        errors: error.errors.map(e = e.message)
+        errors: error.errors.map(e => e.message)
       });
     }
 
@@ -317,7 +271,8 @@ const crearProducto = async (req, res) => {
       message: 'Error al crear producto',
       error: error.message
     });
-  }}
+  }
+};
 
 /**
  * Actualizar producto
@@ -332,7 +287,6 @@ const actualizarProducto = async (req, res) => {
     const { id } = req.params;
     const { nombre, descripcion, precio, stock, categoriaId, subcategoriaId } = req.body;
 
-    //Buscar Producto
     const producto = await Producto.findByPk(id);
 
     if (!producto) {
@@ -342,11 +296,10 @@ const actualizarProducto = async (req, res) => {
       });
     }
 
-    // Validacion si se cambia la categoria y subcategoria 
     if (categoriaId && categoriaId !== producto.categoriaId) {
       const categoria = await Categoria.findByPk(categoriaId);
 
-      if (!categoria) {
+      if (!categoria || !categoria.activo) {
         return res.status(400).json({
           success: false,
           message: `Categoria invalida o inactiva`,
@@ -354,7 +307,6 @@ const actualizarProducto = async (req, res) => {
       };
     }
     
-    // Validacion si se cambia la subcategoria
     if (subcategoriaId && subcategoriaId !== producto.subcategoriaId) {
       const subcategoria = await Subcategoria.findByPk(subcategoriaId);
 
@@ -364,17 +316,16 @@ const actualizarProducto = async (req, res) => {
           message: `Subcategoria invalida o inactiva`,
         });
       };
-    }
 
       const catId = categoriaId || producto.categoriaId;
-      if (subcategoriaId.categoriaId !== parseInt(catId)) {
+      if (subcategoria.categoriaId !== parseInt(catId)) {
           return res.status(400).json({
             success: false,
             message: 'La subcategoria no pertenece a la categoria seleccionada',
         });
       };
+    }
   
-      // Validar el precio y Stock
       if (precio !== undefined && parseFloat(precio) < 0){ 
           return res.status(400).json({
             success: false,
@@ -389,9 +340,7 @@ const actualizarProducto = async (req, res) => {
           });
         }
 
-    //Manejo de imagen
     if (req.file) {
-      //Eliminar imagen anterior si existe
       if (producto.imagen) {
         const rutaImagenAnterior = path.join(__dirname, '../uploads', producto.imagen);
         try {
@@ -403,7 +352,6 @@ const actualizarProducto = async (req, res) => {
       producto.imagen = req.file.filename;
     }
 
-    //Actualizar campos
     if (nombre !== undefined) producto.nombre = nombre;
     if (descripcion !== undefined) producto.descripcion = descripcion;
     if (precio !== undefined) producto.precio = parseFloat(precio);
@@ -411,10 +359,8 @@ const actualizarProducto = async (req, res) => {
     if (categoriaId !== undefined) producto.categoriaId = parseInt(categoriaId);
     if (subcategoriaId !== undefined) producto.subcategoriaId = parseInt(subcategoriaId);
 
-    //Guardar cambios
     await producto.save();
 
-    //Respuesta exitosa
     res.json({
       success: true,
       message: "Producto actualizado exitosamente",
@@ -431,7 +377,7 @@ const actualizarProducto = async (req, res) => {
       } 
     }
 
-    if (error.name === "sequelizeValidationError") {
+    if (error.name === "SequelizeValidationError") {
       return res.status(400).json({
         success: false,
         message: "Error de validacion",
@@ -444,15 +390,12 @@ const actualizarProducto = async (req, res) => {
       message: "Error al actualizar producto",
       error: error.message,
     });
-
+  }
 };
 
 /**
  * Activa/Desactivar Producto
  * PATCH /api/admin/productos/:id/estado
- *
- * Al desactivar una categoria se desactivan todas las subcategorias relacionadas
- * Al desactivar una subcategoria se desactivan todos los productos relacionados
  * @param {Object} req request express
  * @param {Object} res response express
  */
@@ -461,7 +404,6 @@ const toggleProducto = async (req, res) => {
   try {
     const { id } = req.params;
 
-      // Buscar producto
       const producto = await Producto.findByPk(id);
 
       if (!producto) {
@@ -474,7 +416,6 @@ const toggleProducto = async (req, res) => {
       producto.activo = !producto.activo;
       await producto.save();
       
-    //Respuesta exitosa
     res.json({
       success: true,
       message: `Producto ${producto.activo ? "activado" : "desactivado"} exitosamente`,
@@ -494,7 +435,6 @@ const toggleProducto = async (req, res) => {
 /**
  * Eliminar Producto
  * DELETE /api/admin/productos/:id
- * Elimina el producto y su imagen
  * @param {Object} req request express
  * @param {Object} res response express
  */
@@ -502,7 +442,6 @@ const eliminarProducto = async (req, res) => {
   try {
     const { id } = req.params;
 
-    //Buscar producto
     const producto = await Producto.findByPk(id);
 
     if (!producto) {
@@ -512,8 +451,7 @@ const eliminarProducto = async (req, res) => {
       });
     }
 
-    // El hook beforeDestroy se encargara de eliminar la imagen del producto
-    await producto.destroy(); //Destroy elemina toda la informacion guardada en la base de datos
+    await producto.destroy();
 
     res.json({
       success: true,
@@ -566,42 +504,42 @@ const eliminarProducto = async (req, res) => {
                 });
             }
 
+            const stockAnterior = producto.stock;
             let nuevoStock;
 
             switch (operacion) {
                 case 'aumentar':
-                    nuevoStock = producto.aumentarstock (cantidadNum);
+                    nuevoStock = producto.stock + cantidadNum;
                     break;
                 case 'reducir':
-                    nuevoStock = producto.reducirstock (cantidadNum);
                     if (cantidadNum > producto.stock) {
                         return res.status(400).json({
                             success: false,
                             message: `No hay suficiente stock. Stock actual: ${producto.stock}`
                         });
                     }
-                    nuevoStock = producto.reducirstock(cantidadNum);
-                        break;
-                    case 'Establecer':
-                        nuevoStock = cantidadNum;
-                        break;
-                    default:
-                        return res.status(400).json({
-                            success: false,
-                            message: 'Operacion invalida. Use "Aumentar, Reducir o Establecer'
-                        });
-                }
+                    nuevoStock = producto.stock - cantidadNum;
+                    break;
+                case 'establecer':
+                    nuevoStock = cantidadNum;
+                    break;
+                default:
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Operacion invalida. Use "aumentar", "reducir" o "establecer"'
+                    });
+            }
 
             producto.stock = nuevoStock;
             await producto.save();
 
             res.json({
                 success: true,
-                message: `Stock  ${operacion === 'aumentar' ? 'aumentado' : operacion === 'reducir' ? 'reducido' : 'establecido'} exitosamente.`,
+                message: `Stock  ${operacion} exitosamente.`,
                 data: { 
-                    productoId: producto.Id,
+                    productoId: producto.id,
                     nombre: producto.nombre,
-                    stockAnterior: operacion === 'establecer' ? null : (operacion === 'aumentar' ? producto.stock - cantidadNum : producto.stock + cantidadNum),
+                    stockAnterior,
                     stockNuevo: producto.stock 
                 }
             });
@@ -623,7 +561,5 @@ const eliminarProducto = async (req, res) => {
         actualizarProducto,
         toggleProducto,
         eliminarProducto,
-        actualizarStockProducto,
-        actualizarStock
+        actualizarStockProducto
     };
-}

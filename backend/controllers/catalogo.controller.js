@@ -9,7 +9,7 @@
  */
 const Producto = require('../models/Producto');
 const Categoria = require('../models/Categoria');
-const subcategoria = require('../models/subcategoria');
+const Subcategoria = require('../models/Subcategoria');
 
 /**
  * Obtener todos los productos al publico
@@ -35,7 +35,7 @@ const getProductos = async (req, res) => {
             pagina = 1,
             limite = 12,
         } = req.query;
-        const { Op } = requiere('sequelize');
+        const { Op } = require('sequelize');
         
         //Filtros base solo para prodcutos activos y con stock
         const where = {
@@ -58,12 +58,12 @@ const getProductos = async (req, res) => {
         if(precioMin && precioMax) {
             where.precio = {};
             if (precioMin) where.precio[Op.gte] = parseFloat(precioMin);
-            if (precioMax) where.precio[Op.gte] = parseFloat(precioMax);
+            if (precioMax) where.precio[Op.lte] = parseFloat(precioMax);
         }
 
         //Ordenamiento
         let order; 
-        switch (order){
+        switch (orden){
             case 'precio_asc':
                 order = [['precio','ASC']];
                 break;
@@ -82,7 +82,7 @@ const getProductos = async (req, res) => {
         const offset = (parseInt(pagina) - 1) * parseInt(limite);
 
         //Consultar productos
-        const opciones = { count, rows: productos } = await Producto.findAndCountAll({
+        const { count, rows: productos } = await Producto.findAndCountAll({
             where,
             include: [
                 {
@@ -100,7 +100,7 @@ const getProductos = async (req, res) => {
             ],
             limit: parseInt(limite),
             offset,
-            order: [['nombre', 'ASC']]
+            order
         });
 
 
@@ -137,15 +137,16 @@ const getProductos = async (req, res) => {
  */
 
 
-const getproductoById = async (req, res) => {
+const getProductoById = async (req, res) => {
     try {
         const { id } = req.params;
 
         // Buscar productos con activo y stock
-        const Producto = await producto.findOne({
+        const productoEncontrado = await Producto.findOne({
             where: {
                 id, 
                 activo: true,
+                stock: { [Op.gt]: 0 }
             },
             include: [{ 
                 model: Categoria, 
@@ -162,7 +163,7 @@ const getproductoById = async (req, res) => {
             ] 
      });
 
-        if (!Producto) {
+        if (!productoEncontrado) {
             return res.status(404).json({
                 success: false,
                 message: 'Producto no encontrado o no disponible'
@@ -172,7 +173,7 @@ const getproductoById = async (req, res) => {
         res.json({
             success: true,
             data: { 
-                producto: productoJSON
+                producto: productoEncontrado
              }
         });
 
@@ -247,13 +248,13 @@ const getCategorias = async (req, res) => {
  */
 
 
-const getSubcategoriasPorCategorias = async (req, res) => {
+const getSubcategoriasPorCategoria = async (req, res) => {
     try {
         const { id } = req.params;
         const { Op } = require('sequelize');
 
         // Verificar que la categoria exista y este activa
-        const categorias = await Categoria.findOne({
+        const categoria = await Categoria.findOne({
             where: {id, activo: true},
         });
         if (!categoria) {
@@ -300,7 +301,7 @@ const getSubcategoriasPorCategorias = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error en getSubcategoriasPorCategorias:', error);
+        console.error('Error en getSubcategoriasPorCategoria:', error);
         res.status(500).json({
             success: false,
             message: 'Error al obtener categorias',
@@ -367,8 +368,8 @@ const getProductosDestacados = async (req, res) => {
 // Exportar todos los controladores
 module.exports = {
     getProductos,
-    getproductoById,
+    getProductoById,
     getCategorias,
-    getSubcategoriasPorCategorias,
+    getSubcategoriasPorCategoria,
     getProductosDestacados
 };
