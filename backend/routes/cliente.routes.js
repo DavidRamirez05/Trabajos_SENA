@@ -21,7 +21,7 @@ const pedidoController = require('../controllers/pedido.controller');
 router.get('/catalogo/productos', catalogoController.getProductos);
 
 //get /api/catalogo/productos/:id
-router.get('/catalogo/productos/:id', catalogoController.getproductoById);
+router.get('/catalogo/productos/:id', catalogoController.getProductoById);
 
 //get /api/admin/catalogo/categorias
 router.get('/catalogo/categorias', catalogoController.getCategorias);
@@ -41,7 +41,7 @@ router.get('/cliente/carrito', carritoController.getCarrito);
 router.post('/cliente/carrito', carritoController.agregarAlCarrito);
 
 // PUT /api/cliente/carrito/:id
-router.put('/cliente/carrito/:id', verificarAuth, carritoController.actualiItemcarrito);
+router.put('/cliente/carrito/:id', verificarAuth, carritoController.actualizarItemCarrito);
 
 // delete /api/cliente/carrito/:id
 router.delete('/cliente/carrito/:id', verificarAuth, carritoController.eliminarItemCarrito);
