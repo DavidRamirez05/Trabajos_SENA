@@ -124,19 +124,15 @@ app.use((req, res) => {
 // Manejo de errores globales
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
-    // Manejo de errores globales
     
-    app.use((err, req, res, next) => {
-        console.error('Error:', err.message);
-        // Error de multer subida de archivos
-        if(err.name === 'MulterError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Error al subir el archivo',
-                error: err.message
-            });
-        }
-    });
+    // Error de multer subida de archivos
+    if(err.name === 'MulterError') {
+        return res.status(400).json({
+            success: false,
+            message: 'Error al subir el archivo',
+            error: err.message
+        });
+    }
 
     // Otros errores
     res.status(500).json({
