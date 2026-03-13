@@ -8,7 +8,7 @@
 const { verifyToken, extractToken } = require('../config/jwt');
 
 // Importar modelo de usuario
-const Usuario = require('../models/Usuario');
+const { Usuario } = require('../models');
 
 // Middleware de autenticacion
 const verificarAuth = async (req, res, next) => {
@@ -44,7 +44,7 @@ const verificarAuth = async (req, res, next) => {
         }
 
         // Buscar el usuario en la base de datos 
-        const usuario = await Usuario.findById(decoded.id, {
+        const usuario = await Usuario.findByPk(decoded.id, {
             attributes: { exclude: ['password'] } // Excluir el campo password
         });
         
@@ -65,6 +65,7 @@ const verificarAuth = async (req, res, next) => {
 
         // Paso 5: Agregar el usuario al objeto req para uso posterior
         // Ahora en los controladores podemos acceder a req.usuario
+        req.usuario = usuario;
 
         //Continuar con el siguiente
         next();

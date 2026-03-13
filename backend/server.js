@@ -19,7 +19,7 @@ const path = require('path');
 require('dotenv').config();
 
 // Importar configuracion de la base de datos
-const { conectarDB } = require('./config/database');
+const { testConnection, syncDatabase } = require('./config/database');
 
 // Importar modelos y asociaciones
 const { initAssociations } = require('./models');
@@ -112,6 +112,14 @@ app.use('/api/admin', adminRoutes);
 const clienteRoutes = require('./routes/cliente.routes');
 app.use('/api/cliente', clienteRoutes);
 
+// Rutas del catálogo (públicas)
+// Definidas directamente aquí para evitar depender de un archivo adicional
+const catalogoController = require('./controllers/catalogo.controller');
+app.get('/api/catalogo/categorias', catalogoController.getCategorias);
+app.get('/api/catalogo/categorias/:id/subcategorias', catalogoController.getSubcategoriasPorCategoria);
+app.get('/api/catalogo/productos', catalogoController.getProductos);
+app.get('/api/catalogo/productos/:id', catalogoController.getProductoById);
+
 // Manejo de rutas no encontradas (404)
 app.use((req, res) => {
     res.status(404).json({
@@ -154,7 +162,7 @@ const startServer = async () => {
     try {
         // Paso 1: Probar conexion a MySQL
         console.log(' Conectado a MySQL...');
-        const dbConnected = await dbConfig.testConnection();
+        const dbConnected = await testConnection();
 
         if(!dbConnected) {
             console.error('No se pudo conectar a la base de datos. Verifica tu configuración.');
@@ -170,7 +178,7 @@ const startServer = async () => {
         // En desarrollo alter puede ser true para actualizar la estructura
         // En produccion debe ser false para no perder datos
         const alterTables = process.env.NODE_ENV === 'development';
-        const dbSynced = await synDatabase(false, alterTables);
+        const dbSynced = await syncDatabase(true, false); // Force recreate tables
 
         if (!dbSynced) {
             console.error('X Error al sincronizar la base de datos');
@@ -209,8 +217,10 @@ process.on('unhandledRejection', (err) => {
     process.exit(1);
 });
 
-// Iniciar el servidor
-startServer();
+// Iniciar el servidor solo si es el módulo principal
+if (require.main === module) {
+    startServer();
+}
 
 //Exportar app para testing
 module.exports = app;

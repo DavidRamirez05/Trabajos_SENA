@@ -158,7 +158,7 @@ const crearCategoria = async (req, res) => {
 
             //Crear categoria
             const nuevaCategoria = await Categoria.create({
-                nommbre,
+                nombre,
                 descripcion: descripcion || null, // si no se proporciona la descripcion se establece como null
                 activo: true
             });
@@ -198,7 +198,7 @@ const crearCategoria = async (req, res) => {
 const actualizarCategoria = async (req, res) => {
     try {
         const {id} = req.params;
-        const {nombre, descripcion} = req.body;
+        const {nombre, descripcion, activo} = req.body;
 
         //Buscar categoria
         const categoria = await Categoria.findByPk(id);

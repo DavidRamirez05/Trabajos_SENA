@@ -113,7 +113,7 @@
          * Verifica que la categoria padre esta activa
          */
         beforeCreate: async (subcategoria) => {
-            const Categoria = requiere('./Categoria');
+            const Categoria = require('./Categoria');
 
             //Buscar categoria padre
             const categoria = await Categoria.findByPk(subcategoria.categoriaId);

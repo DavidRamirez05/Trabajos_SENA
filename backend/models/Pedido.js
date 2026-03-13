@@ -14,6 +14,9 @@
  /**
   * Definir el modelo de Pedido
   */
+ // Definir el modelo Pedido; la variable debe llamarse `Pedido` para que
+ // el resto del archivo la pueda usar (se había escrito "Pedidoo" por error
+ // lo que provocaba el ReferenceError al final del módulo).
  const Pedido = sequelize.define('Pedido', {
     //Campos de la tabla
     //Id Identificador unico (PRIMARY KEY)
@@ -72,31 +75,31 @@
                 args: [['pendiente', 'pagado', 'enviado', 'cancelado']],
             }
         }
-    },
+    }, 
 
-     // Direccion de envio del pedido
-     direccionEnvio: {
-        type: DataTypes.STRING,
+    //Direccion de envio del pedido
+    direccionEnvio: {
+        type: DataTypes.TEXT,
         allowNull: false,
         validate: {
             notEmpty: {
-                msg: 'La direccion de envio es obligatoria'
+                msg:'La direccion de envio es obligatoria'
             }
         }
     },
 
-    // Telefono de contacto para el envio
-    telefonoContacto: {
+    //telefono de contacto para el envio
+    telefono: {
         type: DataTypes.STRING(20),
         allowNull: false,
         validate: {
             notEmpty: {
-                msg: 'El telefono de contacto es obligatorio'
+                msg:'El telefono es obligatorio'
             }
         }
     },
 
-    //Notas adicionales del cliente para el pedido (Opcional)
+    //notas adicionales del pedido(opcional)
     notas: {
         type: DataTypes.TEXT,
         allowNull: true
@@ -107,20 +110,18 @@
         type: DataTypes.DATE,
         allowNull: true
     },
-
-    //Fecha de Envio
+    //Fecha de envio
     fechaEnvio: {
         type: DataTypes.DATE,
         allowNull: true
     },
-
     //Fecha de Entrega
     fechaEntrega: {
         type: DataTypes.DATE,
         allowNull: true
     },
- }, { 
-    
+
+}, {
     //Opciones del modelo
 
     tableName: 'pedidos',
@@ -128,31 +129,29 @@
     //Indices para mejorar las busquedas
     indexes: [
         {
-            // Indice para buscar carrito por usuario
-            fields: ['usuariosId']
+            //  Indice para buscar carrito por usuario
+            fields: ['usuarioId']
         },
-
         {
-            // Indice para buscar pedidos por estado
+            //  Indice para buscar pedidos por estado
             fields: ['estado']
         },
-
         {
-            // Indice para buscar pedidos por fecha de creacion
+            //  Indice para buscar pedidos por fecha
             fields: ['createdAt']
-        },
+        },        
     ], 
 
-    /**
-    * Hooks acciones automaticas
-    */
+/**
+     * Hooks acciones automaticas
+     */
 
     hooks: {
         /**
          * beforeCreate - se ejecuta antes de crear un item en el carrito
          * valida que este esta activo y tenga stock suficiente
-         *
-        beforeCreate: async (itemCarrito) => {
+         */
+        /**beforeCreate: async (itemCarrito) => {
             const Producto = require('./Producto');
 
             //Buscar el producto
@@ -167,108 +166,112 @@
             }
 
             if(!producto.hayStock(itemCarrito.cantidad)) {
-                throw new Error(Stock insuficiente. Solo hay ${producto.stock} unidades disponibles);
+                throw new Error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
             } 
 
             //Guardar el precio actual del producto
             itemCarrito.precioUnitario = producto.precio
         },*/
 
+
         /**
          * afterUpdate: se ejecuta despues de actualizar un pedido
-         * Actualiza las fechas segun el estado del pedido 
+         * actualiza las fechas segun el estado
          */
         afterUpdate: async (pedido) => {
-            //Si el estado cambio o se actualizo a pagado, guarda la fecha de pago
+            // si es estado cambio a pagado guarda la fecha del pago
             if (pedido.changed('estado') && pedido.estado === 'pagado') {
-                    pedido.fechaPago = new Date();
-                    await pedido.save() ({ hooks: false }); //Guardar sin ejecutar hooks para evitar bucles infinitos
+                pedido.fechaPago = new Date();
+                await pedido.save ({ hooks: false}); //Guardar sin ejecutar hooks
             }
-
-            //Si el estado cambio a enviado, guarda la fecha de envio
-            if (pedido.changed('estado') && pedido.estado === 'enviado' && !pedido.fechaEnvio) {
+            // si el estado cambio a enviado guarda le fecha de envio
+                if (pedido.changed('estado') && pedido.estado === 'enviado' && !pedido.fechaEnvio) {
                     pedido.fechaEnvio = new Date();
-                    await pedido.save({ hooks: false }); //Guardar sin ejecutar hooks para evitar bucles infinitos
-            }
-
-            //Si el estado cambio a entregado, guarda la fecha de entrega
-            if (pedido.changed('estado') && pedido.estado === 'entregado' && !pedido.fechaEntrega) {
+                    await pedido.save({ hooks: false}); //Guardar sin ejecutar hooks
+                }
+                
+                // si el estado cambio a enviado guarda le fecha de entregado 
+                if (pedido.changed('estado') && pedido.estado === 'entregado' && !pedido.fechaEntrega) {
                     pedido.fechaEntrega = new Date();
-                    await pedido.save({ hooks: false }); //Guardar sin ejecutar hooks para evitar bucles infinitos
+                    await pedido.save({ hooks: false}); //Guardar sin ejecutar hooks
+                }
+
+                },
+                /**
+                 * beforeDestroy: se ejecuta antes de eliminar un pedido
+                 */
+                beforeDestroy: async () => {
+                    throw new Error('No se puede eliminar pedidos, use el estado cancelado en su lugar')
+                }
             }
-        },
-            /**
-            * beforeDestroy: se ejecuta antes de eliminar un pedido
-            */
-            beforeDestroy: async () => {
-                throw new Error('No se pueden eliminar pedidos. Si desea cancelar un pedido, cambie su estado a cancelado');
-            }
-        }
-    });
+        });
 
  //METODOS DE INSTANCIA 
  /**
   * Metodo para cambiar el estado del pedido
+  * 
   * @param {string} nuevoEstado - nuevo estado del pedido
   * @returns {number} - Subtotal (precio * cantidad)
   */
 
-Pedido.prototype.cambiarEstado = async function (nuevoEstado) {
+ Pedido.prototype.cambiarEstado = async function (nuevoEstado) {
     const estadosValidos = ['pendiente', 'pagado', 'enviado', 'cancelado'];
 
     if (!estadosValidos.includes(nuevoEstado)) {
-        throw new Error(`estado invalido`);
+        throw new Error('estado invalido')
     }
-    
+
     this.estado = nuevoEstado;
     return await this.save();
-};
+ };
 
-/**
- * Metodo para verificar si el pedido puede ser cancelado
- * solo se pueden cancelar pedidos en estado pendiente o pagado
- * @returns {boolean} true si el pedido puede ser cancelado, false en caso contrario
- */
-Pedido.prototype.puedeCancelar = function () {
+ /**
+  * Metodo para verificar si el pedido puede ser cancelado
+  * solo se puede cancelar si esta en estado pendiente o pagado
+  * @returns {boolean} - true si puede cancelarse, false si no
+  */
+
+ Pedido.prototype.puedeSerCancelado = function() {
     return ['pendiente', 'pagado'].includes(this.estado);
-};
+ };
 
-/**
- * Metodo para cancelar el pedido
- * @returns {Promise<Pedido>} - Pedido cancelado
- */
-Pedido.prototype.cancelar = async function () {
-
-    if (!this.puedeCancelar()) {
-        throw new Error('Este pedido no puede ser cancelado');
+ /**
+  * Metodo para cancelar pedido
+  * @returns {Promise<Pedido>} pedido cancelado
+  */
+ Pedido.prototype.cancelar = async function() {
+     if (!this.puedeSerCancelado()) {
+        throw new Error('este pedido no puede ser cancelado');
     }
 
-    //Importar modelos
+    //  Importar modelos
     const DetallePedido = require('./DetallePedido');
     const Producto = require('./Producto');
 
     //Obtener detalles del pedido
     const detalles = await DetallePedido.findAll({
-        where: { pedidoId: this.id }
+        where: { pedidoId: this.id}
     });
 
-    //Devolver el stock de los productos del pedido
+    //devolver el stock de cada producto
     for (const detalle of detalles) {
         const producto = await Producto.findByPk(detalle.productoId);
-        await producto.incrementarStock(detalle.cantidad);
+        if (producto) {
+        await producto.aumentarStock(detalle.cantidad);
         console.log(`Stock devuelto: ${detalle.cantidad} X ${producto.nombre}`);
-    }   
+    }
+    }
     
     //Cambiar estado a cancelado
     this.estado = 'cancelado';
     return await this.save();
-};
-
-/**
- * Metodo para obtener detalles del pedido con productos
- * @returns {Promise<Array>} - Detalles del pedido con informacion de los productos
-*/
-Pedido.prototype.obtenerDetalle = async function () {
+ };
+ 
+ /**
+  * Metodo para obtener detalle del pedido con productos
+  * @return {Promise<Array>} - detalle del pedido
+  */
+ Pedido.prototype.obtenerDetalle = async function () {
     const DetallePedido = require('./DetallePedido');
     const Producto = require('./Producto');
 
@@ -282,59 +285,38 @@ Pedido.prototype.obtenerDetalle = async function () {
         ]
     });
  };
- 
- /**
-  * Metodo para obtener el carrito completo de un usuario
-  * incluye informacion de los productos 
-  * @param {number} usuarioId - id del usuario
-  * @return {Promise<Array>} - Items del carrito con productos 
-  */
- Pedido.obtenerCarritoUsuario = async function (usuarioId) {
-    const Producto = require('./Producto');
 
+ /**
+  * Metodo para obtener pedidos por estado
+  * @param {string} estado estado a filtrear
+  * @returns {Promise<Array>} pedidos filtrados
+  */
+ Pedido.obtenerPorEstado = async function (estado) {
+    const Usuario = require('./Usuario');
     return await this.findAll({
-        where: { usuarioId},
+        where: { estado },
         include: [
             {
-                model: Producto,
-                as: 'producto'
+                model: Usuario,
+                as:'Usuario',
+                attributes: ['id', 'nombre', 'email', 'telefono']
             }
         ],
-        order: [['createdAt', 'DESC']]
+        oder: [['createdAt', 'DESC']]
     });
  };
 
  /**
-  * Metodo para obtener pedidos por estado 
-  * @param {string} estado estado del pedido a filtrar
-  * @returns {Promise<Array>} Pedidos filtrados por estado
-  */
-    Pedido.obtenerPedidosPorEstado = async function (estado) {
-        const Usuario = require ('./Usuario');
-        return await this.findAll({
-            where: {estado},
-            include: [
-                {
-                    model: Usuario,
-                    as: 'usuario',
-                    attributes: ['id', 'nombre', 'email']
-                }
-            ],
-            order: [['createdAt', 'DESC']]
-        });
-    };
-
- /**
   * Metodo para obtener historial de pedidos de un usuario
-  * @param {number} usuarioId id del usuario
-  * @returns {Promise<Array>} Pedidos del usuario
+  * @param {number} usuarioId - id del usuario
+  * @returns {Promise<Array>} pedidos del usuario
   */
- Pedido.obtenerHistorialusuario = async function (usuarioId) {
+ Pedido.obtenerHistorial = async function (usuarioId) {
     return await this.findAll({
         where: { usuarioId },
         order: [['createdAt', 'DESC']]
     });
  };
 
-//Exportar modelo
-module.exports = Pedido;
+ //Exportar modelo
+ module.exports = Pedido;

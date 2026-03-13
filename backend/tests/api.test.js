@@ -6,6 +6,7 @@
  */
 
 const request = require('supertest');
+require('dotenv').config(); // Cargar variables de entorno
 const app = require('../server');
 
 // Variables globales para tokens y datos
@@ -17,13 +18,22 @@ let subcategoriaId = 0;
 let productoId = 0;
 let usuarioId = 0;
 let pedidoId = 0;
+let server;
 
 describe('🧪 TESTS DE API E-COMMERCE', () => {
 
-  // Limpiar usuario de prueba antes de empezar
+  // Iniciar servidor en puerto de prueba
   beforeAll(async () => {
-    const { Usuario } = require('../models');
-    await Usuario.destroy({ where: { email: 'test@test.com' } });
+    server = app.listen(5001);
+    const { sequelize } = require('../config/database');
+    await sequelize.sync({ force: true }); // Reset database
+    const { runSeeders } = require('../seeders/adminSeeder');
+    await runSeeders(); // Seed data
+  });
+
+  // Cerrar servidor después de pruebas
+  afterAll(async () => {
+    if (server) server.close();
   });
 
   // ==========================================
@@ -437,6 +447,9 @@ describe('🧪 TESTS DE API E-COMMERCE', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(Array.isArray(response.body.data.categorias)).toBe(true);
+      if (response.body.data.categorias.length > 0) {
+        categoriaId = response.body.data.categorias[0].id;
+      }
     });
 
     test('✅ Cliente debe ver subcategorías por categoría', async () => {
@@ -455,6 +468,10 @@ describe('🧪 TESTS DE API E-COMMERCE', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(Array.isArray(response.body.data.productos)).toBe(true);
+      expect(response.body.data.productos.length).toBeGreaterThan(0);
+      if (response.body.data.productos.length > 0) {
+        productoId = response.body.data.productos[0].id;
+      }
     });
 
     test('✅ Cliente debe ver un producto específico', async () => {

@@ -10,6 +10,7 @@
 const Producto = require('../models/Producto');
 const Categoria = require('../models/Categoria');
 const Subcategoria = require('../models/Subcategoria');
+const { Op } = require('sequelize');
 
 /**
  * Obtener todos los productos al publico

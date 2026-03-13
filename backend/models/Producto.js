@@ -19,7 +19,7 @@
     //Campos de la tabla
     //Id Identificador unico (PRIMARY KEY)
     id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER, //dato tipo int directamente en mysql
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
@@ -93,7 +93,6 @@
             }
         }
     },
-
  /**
      * categoriaId - ID de la categoria a la que pertenece (FOREIGN KEY)
      * Esta es la relacion con la tabla categoria
@@ -102,8 +101,8 @@
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'subcategorias', // Nombre de la tabla relacionada
-            key: 'id'// Campo de la tabla relacionada
+            model: 'subcategorias', // nombre de la tabla relacionada
+            key: 'id'// campo de la tabla relacionada
         },
         onUpdate: 'CASCADE', // Si se actualiza el id, actualizar aca tambien
         onDelete: 'CASCADE', // si se elimina la categoria eliminar las subcategorias 
@@ -143,7 +142,6 @@
         allowNull: false,
         defaultValue: true
     }
-
  }, {
     //Opciones del modelo 
 
@@ -179,23 +177,24 @@
 
     hooks: {
         /**
-         * beforeCreate - se ejecuta antes de crear un producto
-         * valida que la subcategoria y que la categoria esten activa
+         * beforeCreate - se ejecuta antes de crear una subcategoria
+         * velida que la subcaregoria y que la categoria esten activas
          */
         beforeCreate: async (producto) => {
             const Categoria = require('./Categoria');
-            const Subcategoria = require('./Subcategoria');
+            const SubcategoriaModel = require('./Subcategoria');
 
-            //Buscar Subcategoria padre
-            const subcategoria = await Subcategoria.findByPk(producto.subcategoriaId);
+            //Buscar subcategoria padre
+            const subcategoria = await SubcategoriaModel.findByPk(producto.subcategoriaId);
 
             if (!subcategoria) {
-                throw new Error ('La subcategoria seleccionada no existe');
+                throw new Error('La subcategoria seleccionada no existe');
             }
 
             if (!subcategoria.activo) {
                 throw new Error('No se puede crear un producto en una subcategoria inactiva');
             }
+
 
             //Buscar categoria padre
             const categoria = await Categoria.findByPk(producto.categoriaId);
@@ -208,31 +207,30 @@
                 throw new Error('No se puede crear un producto en una categoria inactiva');
             }
 
-            //Validar que la subcategoria pertenezca a una categoria
-            if (subcategoria.categoriaId == producto.categoriaId) {
-                throw new Error('La subcategoria no pertence a la categoria seleccionada')
+            //validar que la subcategoria pertenezca a la categoria
+            if (subcategoria.categoriaId !== producto.categoriaId) {
+                throw new Error('La subcategoria no pertenece a la categoria seleccionada');
             }
         },
 
-
         /**
-         * beforeDestroy: Se ejecuta antes de eleminar un producto
-         * Elimina la imagen del producto del servidor si existe
+         * beforeDestroy: se ejecuta antes de eliminar un producto
+         * Elinima la imagen del servidor si existe
          */
 
         beforeDestroy: async (producto) => {
             if (producto.imagen) {
                 const {deleteFile} = require('../config/multer');
-                //Intenta eleminar la imagen del servidor
-                const eleminado = await deleteFile (producto.imagen);
+                //intenta eliminar la imaen del servidor
+                const eliminado = await deleteFile (producto.imagen);
 
-                if (eleminado) {
-                    console.log(`Imagen eleminada: ${producto.imagen}`);
+                if (eliminado) {
+                    console.log(`Imagen eliminada: ${producto.imagen}`);
                 }
             }
         }
-    }
- });
+        }
+    });
 
  //METODOS DE INSTANCIA 
  /**
@@ -240,51 +238,51 @@
   * 
   * @returns {string|null} - url de la imagen
   */
-
  Producto.prototype.obtenerUrlImagen = function () {
     if (this.imagen) {
-        return null;
+        return null; 
     }
-    const baseUrl= process.env.FRONTEND_URL || 'http://localhost:5000';
 
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
     return `${baseUrl}/uploads/${this.imagen}`;
+ };
+/**
+ * metodo para verificar si hay stock disponible
+ * 
+ * @param {number} cantidad - cantidad deseada
+ * @returns {boolean} - true si hay stock suficiente, false si no
+ */
+Producto.prototype.hayStock = function(cantidad = 3) {
+    return this.stock >= cantidad;
 };
 
 /**
-  * Metodo para verificar si hay stock disponible
-  *  
-  * @param {number} cantidad - cantidad deseada
-  * @returns {boolean} - true si hay stock disponible, false si no
-  */
-Producto.prototype.hayStock = function(cantidad = 3){
-    return this.stock >= cantidad;
- };
-
- /**
-  * Metodo para reducir el stock
-  * Util para despues de una venta
-  * @param {number} cantidad - cantidad a reducir
-  * @returns {Promise<Producto>} - producto actualizado
+ * Metodo para reducir el stock
+ * Util para despues de una venta
+ * @param {number} cantidad - cantidad a reducir
+ * @returns {Promise<Producto>} - producto actualizado
  */
-Producto.prototype.reducirStock = async function(cantidad) {
-    if (!this.hayStock(cantidad)) {
-        throw new Error('stock insuficiente');
-    }
+Producto.prototype.reducirStock = async function (cantidad) {
+    if (this.hayStock(cantidad)) {
+        throw new Error('Stock insuficiente');
+    } 
     this.stock -= cantidad;
-    return this.save();
+    return await this.save();
 };
 
 /**
  * Metodo para aumentar el stock
- * Util para despues de una devolucion
+ * util al cencelar una venta o recibir inventario
  * @param {number} cantidad - cantidad a aumentar
- * @returns {Promise<Producto>} - producto actualizado
+ * @returns {Promise<Producto>} producto actualizado
  */
-Producto.prototype.aumentarStock = async function(cantidad) {
-    this.stock += cantidad;
-    return await this.save();
+Producto.prototype.aumentarStock = async function (
+    cantidad) {
+        this.stock += cantidad;
+        return await this.save();
 };
 
-
- //Exportar modelo Producto
- module.exports = Producto; 
+// Exportar modelo Producto
+// (la variable se definió como `Producto` arriba, el uso de `producto`
+// provocaba ReferenceError al cargar el módulo)
+module.exports = Producto;

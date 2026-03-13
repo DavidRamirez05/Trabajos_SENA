@@ -26,7 +26,7 @@ const generateToken = (payload) => {
         const token = jwt.sign(
             payload,
             process.env.JWT_SECRET, //Clave secreta desde .env
-            { expiresIn: process.env.JWT.EXPIRES_IN } //Tiempo de expiracion
+            { expiresIn: process.env.JWT_EXPIRES_IN } //Tiempo de expiracion
         );
 
         return token;

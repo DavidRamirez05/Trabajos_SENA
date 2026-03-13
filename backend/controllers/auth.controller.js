@@ -100,7 +100,7 @@ const registrar = async (req, res) => {
                     return res.status(400).json({
                         success: false,
                         message: 'Error al registrar usuario',
-                        errors: error.errors.map(e => e.message)
+                        errors: error.errors ? error.errors.map(e => e.message) : [error.message]
                     });
                 }
         };

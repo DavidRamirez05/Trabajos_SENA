@@ -117,7 +117,7 @@ Producto.hasMany(Carrito, {
 });
 
 Carrito.belongsTo(Producto, {
-    foreignKey: 'productoid', //Campo que conecta las tablas
+    foreignKey: 'productoId', //Campo que conecta las tablas
     as: 'producto', //Alias para la relacion
     onDelete: 'CASCADE', //Si se elimina producto eliminar el carrito
     onUpdate: 'CASCADE' //Si se actualiza producto actualizar el carrito
@@ -137,7 +137,7 @@ Usuario.hasMany(Pedido, {
 });
 
 Pedido.belongsTo(Usuario, {
-    foreignKey: 'usuarioid', //Campo que conecta las tablas
+    foreignKey: 'usuarioId', //Campo que conecta las tablas
     as: 'usuario', //Alias para la relacion
     onDelete: 'RESTRICT', //Si se elimina Usuario NO eliminar el Pedido
     onUpdate: 'CASCADE' //Si se actualiza Usuario actualizar el Pedido
@@ -157,7 +157,7 @@ Pedido.hasMany(DetallePedido, {
 });
 
 DetallePedido.belongsTo(Pedido, {
-    foreignKey: 'pedidoid', //Campo que conecta las tablas
+    foreignKey: 'pedidoId', //Campo que conecta las tablas
     as: 'pedido', //Alias para la relacion
     onDelete: 'CASCADE', //Si se elimina Pedido eliminar el detalle del pedido
     onUpdate: 'CASCADE' //Si se actualiza Pedido actualizar el detalle del pedido
@@ -177,7 +177,7 @@ Producto.hasMany(DetallePedido, {
 });
 
 DetallePedido.belongsTo(Producto, {
-    foreignKey: 'productoid', //Campo que conecta las tablas
+    foreignKey: 'productoId', //Campo que conecta las tablas
     as: 'producto', //Alias para la relacion
     onDelete: 'RESTRICT', //No se puede eliminar un producto si esta en un detalle de pedido
     onUpdate: 'CASCADE' //Si se actualiza Producto actualizar el detalles del pedido
@@ -185,7 +185,8 @@ DetallePedido.belongsTo(Producto, {
 
 /**
  * relacion de muchos a muchos
- * pedido y producto tiene una relacion de muchos a muchos atravez de detalle pedido
+ * pedido y producto tiene una relacion de muchos a muchos a traves de detalle pedido
+ * Sequelize requiere belongsToMany para N:M, no hasMany (error mostrado en log).
  */
 
 Pedido.belongsToMany(Producto, {
